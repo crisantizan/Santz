@@ -1,0 +1,28 @@
+{
+  "name": "Jovi",
+  "version": "0.9.0",
+  "description": "Pequeña librería para realizar consultas SQL desde código JavaScript",
+  "main": "test-connetion.js",
+  "scripts": {
+    "start": "node test-connection.js"
+  },
+  "keywords": [
+    "mysql",
+    "nodejs",
+    "orm",
+    "Jovi",
+    "Santz"
+  ],
+  "dependencies": {
+    "mysql":"^2.16.0"
+  },
+  "author": {
+    "name":"Chris Santiz",
+    "email":"santzch@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type":"git",
+    "url":"https://github.com/chrisantiz/Jovi.git"
+  }
+}
