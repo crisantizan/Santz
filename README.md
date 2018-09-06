@@ -1,17 +1,17 @@
-# Jovi 0.9.0
+# Santz 0.9.0
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
-`Jovi` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
+`Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
 ## Instalar
 ```sh
-$ npm install jovi
+$ npm install santz
 ```
 ## Configuración
 
 ```js
 // Requerir la librería
-const database = require('jovi');
+const database = require('santz');
 
 // Credenciales básicas para establecer conexión a base de datos
 const config = {
@@ -45,7 +45,7 @@ Lo que se obtenga aquí deberá ser pasado como parámetro al método `connect` 
 
 * `connect(connection, showMessageStatus)`: Está función ejecutará la conexión, y pondrá su objecto listo para realizar consultas. Su parámetro `connection` será el objeto conexión, y `showMessageStatus`, vendrá a ser un boleano que indicará si se quiere mostrar en consola si la conexión fue exitosa, por defecto será falso.
 
-* `Model(objectConfig)`: Retornará una clase con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería. La propiedad `connection` será de igual manera el objeto conexión, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `jovi` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
+* `Model(objectConfig)`: Retornará una clase con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería. La propiedad `connection` será de igual manera el objeto conexión, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `Santz` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
 ## Modo estricto y tablas estáticas
 Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas, a continuación se explican los conceptos:
  ### Modo estricto:
@@ -60,7 +60,7 @@ Constantemente se estará hablando de dos conceptos súper importantes, que ser�
   Por defecto, en modo estricto, para la librería todas las tablás serán dinámicas, es decir, sus valores serán modificados constantemente. Una `tabla estática`, por el contrario será aquella en la cual su información no será cambiante (o por lo menos no por usuarios de la aplicación), solo será de lectura. Por ejemplo: los grados de un colegio, las ciudades de un país, los países de un continente, los tipos de usuarios en equis aplicación, el sexo de una persona, etcétera.
 
   Si se dejase el modo estricto inactivo no sería necesario indicar cuando una tabla será estática, pero sí si lo está es simple de pasar en el método a usar un `true` como segundo parámetro.
-## Métodos de la clase Jovi
+## Métodos de la clase Santz
 > ### __`select()`__
 ### __Parámetros:__
 ### columns : ...string | object 
