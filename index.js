@@ -1,5 +1,5 @@
 const dbConnection = require('./lib/connection');
-const Jovi = require('./lib/Jovi');
+const Santz = require('./lib/Santz');
 
 module.exports = {
 
@@ -25,7 +25,7 @@ module.exports = {
         if(!strict && columnNameState) {
             console.log(`PRECAUCIÓN: No hace falta especificar la propiedad 'columnNameState' si el modo estricto está desactivado.\n`);
         }
-        const Model = new Jovi(connection, strict);
+        const Model = new Santz(connection, strict);
         Model.columnNameState = columnNameState;
         Model.showQuery = showQuery;
         return Model;

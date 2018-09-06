@@ -48,7 +48,7 @@ Lo que se obtenga aquí deberá ser pasado como parámetro al método `connect` 
 * `Model(objectConfig)`: Retornará una clase con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería. La propiedad `connection` será de igual manera el objeto conexión, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `jovi` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
 ## Modo estricto y tablas estáticas
 Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas, a continuación se explican los conceptos:
-* ### Modo estricto:
+ ### Modo estricto:
   La librería por defecto lo tendrá activado. Este modo busca impedir la eliminación de valores por accidente o por cualquier otra circunstancia.
 
   Literalmente, lo que hará este paquete en cada consulta `SQL`, será agregarle un `WHERE` implícitamente al `query` para buscar o afectar solo aquella información que tenga en su `columnNameState` (dicho nombre de columna será pasado en el objecto configuración) el valor de `1`. Por ejemplo, si se hace '`SELECT * FROM ´user´;`', la librería lo convertiría a '`SELECT * FROM ´user´ WHERE ´user´.´state´ = 1;`' y así para todas aquellas consultas que quieran leer, modificar, o insertar información (excepto el método [`destroy`](#destroy), este eliminará cualquier dato), recordando que esto siempre y cuando el modo estricto esté activo.
@@ -56,14 +56,14 @@ Constantemente se estará hablando de dos conceptos súper importantes, que ser�
   Ahora bien, aún con el modo estricto, habrán `tablas estáticas`, lo que quiere decir que estas no contarán con la columna `columnNameState`, todo un problema si la librería siempre busca información dependiendo del valor de esta columna. Para indicarle al módulo que la tabla a consultar será estática, los métodos: [`from`](#from), [`innerJoin`](#inner-join), [`insert`](#insert), [`update`](#update) tendrán un segundo parámetro boleano, `staticTable` que por defecto estrá en `false`, simplemente se le pasa un `true` y listo, se omitirá la búsqueda de la columna `columnNameState` en dicha tabla.
 
   Cuando se ponga este modo como inactivo se deberá omitir el paso de la propiedad `columnNameState` en el objeto conexión pasado al método `Model`.
-* ### Tablas estáticas
+### Tablas estáticas
   Por defecto, en modo estricto, para la librería todas las tablás serán dinámicas, es decir, sus valores serán modificados constantemente. Una `tabla estática`, por el contrario será aquella en la cual su información no será cambiante (o por lo menos no por usuarios de la aplicación), solo será de lectura. Por ejemplo: los grados de un colegio, las ciudades de un país, los países de un continente, los tipos de usuarios en equis aplicación, el sexo de una persona, etcétera.
 
   Si se dejase el modo estricto inactivo no sería necesario indicar cuando una tabla será estática, pero sí si lo está es simple de pasar en el método a usar un `true` como segundo parámetro.
 ## Métodos de la clase Jovi
 > ### __`select()`__
 ### __Parámetros:__
-* ### columns : ...string | object 
+### columns : ...string | object 
 
 Crea una consulta de tipo `SELECT`. Como parámetro se pueden pasar una serie de `strings`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas, cuando se requieran todas se puede usar `'*'`. Ahora bien, para consultas más completas, tipo `INNER JOIN`, el parámetro que se requiere es un objeto, donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar.
 - Ejemplos:
@@ -80,9 +80,9 @@ Crea una consulta de tipo `SELECT`. Como parámetro se pueden pasar una serie de
   * [`select con where`](#select-con-where)
 > ### __`where()`__
 ### __Parámetros:__
-* ### columnName: string
-* ### operator: string - default '='
-* ### value: string | number
+### columnName: string
+### operator: string - default '='
+### value: string | number
 Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer parámetro recibirá el `identificador` o nombre de columna, de segundo el `operador` (=, LIKE, >, <, >= ...) por el cual se van a comparar los datos; si se omite por defecto será `'='`. Por último se tiene el `valor`, que va a ser el dato a buscar.
 - Ejemplos:
   ```js
@@ -95,8 +95,8 @@ Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer paráme
   ```
 > ### `from()`
 ### __Parámetros:__
-* ### tableName: string
-* ### staticTable boolean - default: false
+### tableName: string
+### staticTable boolean - default: false
 
 Inserta al query la cláusula `FROM`.
 
@@ -110,8 +110,8 @@ El parámetro `tableName` hará referencia al nombre de la tabla donde se consul
   ```
 > ### `insert()`
 ### __Parámetros:__
-* ### tableName: string
-* ### staticTable: boolean - default: false
+### tableName: string
+### staticTable: boolean - default: false
 
 Crea una sentencia `SQL` de inserción de datos.
 
@@ -127,8 +127,8 @@ Ejemplo práctico:
 * [`Inserción de datos`](#inserción-de-datos)
 > ### `update()`
 ### __Parámetros:__
-* ### tableName: string
-* ### staticTable: boolean - default: false
+### tableName: string
+### staticTable: boolean - default: false
 
 Sentencia `SQL` para la modificación de datos.
 
@@ -144,7 +144,7 @@ Ejemplo práctico:
 * [`Actualización de datos`](#actualización-de-datos)
 > ### `values()`
 ### __Parámetros:__
-* ### data: object
+### data: object
 
 Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el dato a insertar/modificar. Utilizarse solo desde los métodos [`insert`](#insert) o [`update`](#update). 
 * Ejemplo:
@@ -158,7 +158,7 @@ Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el d
   ```
 > ### `destroy()`
 ### __Parámetros:__
-* ### tableName: string
+### tableName: string
 
 Ejecutará una sentencia `DELETE` en el cual, a diferencia del método [`hidden`](#hidden), eliminará definitivamente los datos especificados.
 * Ejemplo:
@@ -170,7 +170,7 @@ Ejemplo práctico:
 * [`Eliminación de datos`](#eliminación-de-datos)
 > ### `hidden()`
 ### __Parámetros:__
-* ### tableName: string
+### tableName: string
 Solo en [`modo estricto`](#modo-estricto).
 
 Cambiará el estado de visibilidad de la filas seleccionadas. Esto impedirá que al intentar leer o modificar estos datos sea imposible con los métodos [`select`](#select) y [`update`](#update).
@@ -185,7 +185,7 @@ Ejemplo práctico:
 * [`Ocultar filas`](#ocultar-filas)
 > ### `show()`
 ### __Parámetros:__
-* ### tableName: string
+### tableName: string
 Solo en [`modo estricto`](#modo-estricto).
 
 Volverá visibles aquellas filas que han sido ocultas por el método [`hidden`](#hidden).
@@ -200,7 +200,7 @@ Ejemplo práctico:
 * [`Volver visibles filas ocultas`](#Volver-visibles-filas-ocultas)
 > ### `rowsHidden()`
 ### __Parámetros:__
-* ### tableName: string
+### tableName: string
 Solo en [`modo estricto`](#modo-estricto).
 
 Permitirá visualizar todas aquellas filas que han sido ocultas por el método [`hidden`](#hidden). A diferencia de [`show`](#show), este no cambiará el estado de visibilidad, solo leerá los datos.
@@ -215,8 +215,8 @@ Ejemplo práctico:
 * [`Ver todos los registros ocultos`](#Ver-todos-los-registros-ocultos)
 > ### `innerJoin()`
 ### __Parámetros:__
-* tableName: string
-* staticTable: boolean - default: false
+### tableName: string
+### staticTable: boolean - default: false
 
 Método encargado de agregar al query la cláusula `INNER JOIN`.
 * Ejemplo:
@@ -230,8 +230,8 @@ Ejemplo práctico:
 * [`Sentencia INNER JOIN`](#sentencia-INNER-JOIN)
 > ### `on()`
 ### __Parámetros:__
-* firstIdentifier: string
-* secondIdentifier: string
+### firstIdentifier: string
+### secondIdentifier: string
 
 Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a los identificadores, o nombre de columnas, a comparar.
 * Ejemplo:
@@ -241,9 +241,9 @@ Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a l
   ```
 > ### `and()`
 ### __Parámetros:__
-* columnName: string
-* operator: string - default: '='
-* value: string | number
+### columnName: string
+### operator: string - default: '='
+### value: string | number
 
 Añade la cláusula `AND` al query.
 * Ejemplo:
@@ -253,9 +253,9 @@ Añade la cláusula `AND` al query.
   ```
 > ### `or()`
 ### __Parámetros:__
-* columnName: string
-* operator: string - default: '='
-* value: string | number
+### columnName: string
+### operator: string - default: '='
+### value: string | number
 
 Añade la cláusula `OR` al query.
 * Ejemplo:
