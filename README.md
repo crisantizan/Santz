@@ -1,4 +1,4 @@
-# Santz 0.9.0
+# Santz 0.9.1
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
 `Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
