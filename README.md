@@ -1,6 +1,43 @@
 # Santz 0.9.1
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
+- [Instalación](#instalar)
+- [Métodos de configuración](#Descripción-de-métodos-de-conexión)
+- [Modo estricto y tablas estáticas](#Modo-estricto-y-tablas-estáticas)
+  - [Modo estricto](#modo-estricto)
+  - [Tablas estáticas](#tablas-estáticas)
+- [Métodos de la clase Santz](#Métodos-de-la-clase-Santz)
+  - [select](#select)
+  - [where](#where)
+  - [from](#from)
+  - [insert](#insert)
+  - [update](#update)
+  - [values](#values)
+  - [destroy](#destroy)
+  - [hidden](#hidden)
+  - [show](#show)
+  - [rowsHidden](#rowsHidden)
+  - [innerJoin](#innerJoin)
+  - [on](#on)
+  - [and](#and)
+  - [or](#or)
+  - [orderBy](#orderBy)
+  - [limit](#limit)
+  - [exec](#exec)
+- [Ejemplos de uso](#ejemplos-de-uso)
+  - [select simple](#select-simple)
+  - [select con where](#select-con-where)
+  - [inserción de datos](#inserción-de-datos)
+  - [actualización de datos](#actualización-de-datos)
+  - [sentencia INNER JOIN](#sentencia-INNER-JOIN)
+  - [ocultar filas](#ocultar-filas)
+  - [volver visibles filas ocultas](#volver-visibles-filas-ocultas)
+  - [ver todos los registros ocultos](#ver-todos-los-registros-ocultos)
+  - [eliminación de datos](#eliminación-de-datos)
+  - [ordenar valores devueltos](#ordenar-valores-devueltos)
+  - [limitar el número de filas a mostrar](#limitar-el-número-de-filas-a-mostrar)
+- [Ejecutando código SQL más complejo](#ejecutando-código-SQL-más-complejo)
+
 `Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
 ## Instalar
@@ -278,6 +315,23 @@ Ordena ascendente o descendentemente todas las filas obtenidas, por los valores 
   ```
 Ejemplo práctico:
 * [`Ordenar valores devueltos`](#Ordenar-valores-devueltos)
+> ### `limit()`
+### __Parámetros:__
+* startOrAmount: number
+* numRows: number
+
+Agrega la cláusula «LIMIT» a la consulta, usarse solo al final de esta. Recibirá dos parámetros cuando se quiera mostrar filas desde cierta posición hasta la cantidad deseada, o un parámetro cuando solo se quiera limitar la cantidad de registros a mostrar iniciando desde la primera posición por defecto (0).
+
+* Ejemplo:
+  ```js
+  // Con un solo parámetro: mostrará las 5 primeras filas.
+  limit(5).exec();
+  // Con dos parámetros: Mostrará 2 filas, a partir de la 5.
+  limit(5,2).exec();
+  ```
+Ejemplo práctico:
+* [`Limitar el número de filas a mostrar`](#Limitar-el-número-de-filas-a-mostrar)
+
 > ### `exec()`
 
 Método encargado de ejecutar la sentencia `SQL` antes  preparada. Siempre debe ser invocado de último. Retornará una promesa con los resultados de la ejecución del query.
@@ -382,7 +436,7 @@ OkPacket {
 }
 ```
 > ### Sentencia INNER JOIN
-Cuando la consulta a realizar es de tipo `INNERJOIN`, al método [`select`](#select) se le debe pasar un objeto en el cual sus llaves corresponderán al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a mostrar.
+Cuando la consulta a realizar es de tipo `INNER JOIN`, al método [`select`](#select) se le debe pasar un objeto en el cual sus llaves corresponderán al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a mostrar.
 ```js
 const result = Model.select({
     // De la tabla `user` las columnas `id` y `name`
@@ -566,3 +620,108 @@ SELECT * FROM `user` WHERE `user`.`state` = 1 ORDER BY `id` ASC;
   RowDataPacket { id: 20, name: 'Alberto', type: 2, state: 1 } 
 ]
 ```
+> ### Limitar el número de filas a mostrar
+_`Recordatorio:` Como en las filas de una tabla en MySql la primera posición siempre será «0», cuando le indicamos al método `limit` en qué fila empezar tener en cuenta que si le indicamos «1» esta nos mostrará el registro «2», y así con las demás posiciones._
+```js
+// Mostrando los primeros 5 registros
+const result = model.select('id','nick').from('users').limit(5).exec();
+
+// Mostrando 5 filas a partir de la posición 2
+const result1 = model.select('id','nick').from('users').limit(2,5).exec();
+
+// Ejecutar las dos consultas
+Promise.all([result, result1])
+.then( data => console.log(data),
+        err => console.log(err) );
+```
+Resultado en consola:
+```sh
+[
+  // Sentencia 1: mostrando los primeros 5 registros
+  [
+    RowDataPacket { id: 2, nick: 'santz' },
+    RowDataPacket { id: 3, nick: 'may' },
+    RowDataPacket { id: 4, nick: 'sky' },
+    RowDataPacket { id: 5, nick: 'chris' },
+    RowDataPacket { id: 6, nick: 'angel' }
+  ],
+  // Sentencia 2: mostrando 5 registros a partir de la posición 2
+  [
+    RowDataPacket { id: 4, nick: 'sky' },
+    RowDataPacket { id: 5, nick: 'chris' },
+    RowDataPacket { id: 6, nick: 'angel' },
+    RowDataPacket { id: 7, nick: 'charly' },
+    RowDataPacket { id: 8, nick: 'jose' }
+  ]
+]
+```
+> ### Ejecutando código SQL más complejo
+¿Qué pasaría si quisiésemos actualizar una columna con valores numéricos incrementando su valor actual en uno, dos, etcétera?
+
+Por ejemplo, en el siguiente caso tenemos una columna «pj» cuyo valor requiere ser incrementado en uno, su valor actual es «10».
+
+Se podría ejecutar un SELECT consultando su contenido, almacenarlo en una variable, sumarle uno y luego ejecutar un UPDATE. Pero esto no sería para nada recomendado si pensamos en el rendimiento de nuestro servidor. Si eres bueno en SQL, o por lo menos conoces conceptos básicos, sabrás que este incremento se puede ejecutar en la misma sentencia UPDATE sin necesidad de obtener previamente el valor de la columna. Sería algo así:
+
+`UPDATE users SET pj = pj + 1 WHERE id = 4;`
+
+Si no conocías este «truco» es hora de ponerlo en práctica.
+
+Hasta ahí bien, ahora intentemos ejecutar esa misma sentencia SQL desde nuestra librería:
+```js
+const result = model.update('users').values({ pj: 'pj + 1' }).where('id', 4).exec();
+
+result.then( data => console.log(data) );
+```
+Obtendremos lo siguiente:
+```sh
+MODO ESTRICTO: ACTIVADO
+
+UPDATE `users` SET `pj` = 'pj + 1' WHERE `id` = 4 AND `users`.`state` = 1;
+
+Connected as id 106
+OkPacket {
+  fieldCount: 0,
+  affectedRows: 1,
+  insertId: 0,
+  serverStatus: 2,
+  warningCount: 1,
+  message: '(Rows matched: 1  Changed: 1  Warnings: 1',
+  protocol41: true,
+  changedRows: 1
+}
+```
+A primera parece que se ejecutó correctamente, si vemos la propiedad «changedRows» (indica el número de filas cuyo valor haya cambiado) del objeto devuelto tiene como valor «1», y efectivamente, revisa tu base de datos y te fijarás en sí, cambió, pero no de la manera esperada. Recordemos que su contenido anterior era «10», debería ser ahora «11» pero no, es «0» (en caso de que solo acepte números).
+
+Si revisamos el código SQL de nuestra ejecución en consola, a la columna «pj» se le está asignando como valor un string: «pj + 1», y es que para ejecutar código SQL en el valor de una propiedad del método `values` se debe recurrir a la función `toSqlString`, que deberá ser pasada a la propiedad requirida dentro de un objeto:
+```js
+const data = {
+  /* Nombre de la columna */
+  pj: {
+    /* El string que retornará se ejecutará en la sentencia como si fuese código SQL */
+    toSqlString: () => '`pj` + 1'
+  }
+};
+
+const result = model.update('users').values(data).where('id', 4).exec();
+
+result.then( data => console.log(data) );
+```
+Ejecución:
+```sh
+MODO ESTRICTO: ACTIVADO
+
+UPDATE `users` SET `pj` = `pj` + 1 WHERE `id` = 4 AND `users`.`state` = 1;
+
+Connected as id 108
+OkPacket {
+  fieldCount: 0,
+  affectedRows: 1,
+  insertId: 0,
+  serverStatus: 2,
+  warningCount: 0,
+  message: '(Rows matched: 1  Changed: 1  Warnings: 0',
+  protocol41: true,
+  changedRows: 1
+}
+```
+Ahora es diferente, el valor que se le asigna a la columna no es un string como anteriormente lo era. De igual manera podemos verificar la propiedad «changedRows» y ratifica la modificación. La información en base de datos, esta vez, ha sido exitosa.
