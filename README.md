@@ -1,4 +1,4 @@
-# Santz 0.9.1
+# Santz 0.9.2
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
 - [Instalación](#instalar)
@@ -37,6 +37,7 @@
   - [ordenar valores devueltos](#ordenar-valores-devueltos)
   - [limitar el número de filas a mostrar](#limitar-el-número-de-filas-a-mostrar)
 - [Ejecutando código SQL más complejo](#ejecutando-código-SQL-más-complejo)
+- [Con async - await](#con-async---await)
 
 `Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
@@ -725,3 +726,66 @@ OkPacket {
 }
 ```
 Ahora es diferente, el valor que se le asigna a la columna no es un string como anteriormente lo era. De igual manera podemos verificar la propiedad «changedRows» y ratifica la modificación. La información en base de datos, esta vez, ha sido exitosa.
+
+> ### Con async - await
+Como obtenemos los datos mediante promesas, por defecto se puede utilizar esta nueva manera para resolverlas.
+
+Para poder utilizar esta nueva metodología, hay que anteponerle el prefijo «async» a la función donde estemos trabajando:
+
+```js
+async function test () {
+  // code
+}
+
+const test = async () => {
+  // code
+};
+```
+
+Casi siempre será así, pero hay otros casos donde no, no estaremos en el ámbito de una función y no es factible su uso. En estos caso se puede utilizar funciones autoimbocables, funciones anónimas que se ejecutarán al mismo tiempo de ser declaradas:
+
+```js
+( async function () {
+
+})(); // Paréntesis ejecutan la función, pueden recibir parámetros para su uso interno.
+
+( async () => {
+  
+})();
+```
+
+Y una de las ventanjas de esta forma es el manejo de errores. Será de manera más clara y con el convencional bloque «try catch»:
+
+```js
+( async () => {
+  try {
+    const result = await model.select.('nick').from('users').limit(5).exec();
+    console.log(result);)
+  } catch(err) {
+    // Cuando ocurre algún
+    console.log(err);
+  }
+})();
+```
+
+Otra de las palabras claves es «await», esta indica que esperará a que la promesa sea resuelta y asignar su valor en la variable.
+
+El resultado en consola será el mismo que como si se ejecutase de la manera tradidional:
+```sh
+MODO ESTRICTO: ACTIVADO
+
+SELECT `nick` FROM `users` WHERE `users`.`state` = 1 LIMIT 5;
+
+Connected as id 7
+[ RowDataPacket { nick: 'santz' },
+  RowDataPacket { nick: 'may' },
+  RowDataPacket { nick: 'sky' },
+  RowDataPacket { nick: 'chris' },
+  RowDataPacket { nick: 'angel' }
+]
+```
+
+Para finalizar, hay que entender que en toda función que se use con «async - await» automáticamente estará retornando una promesa, concepto clave cuando pretendemos devolver valores y asignarlos a variables de manera tradicional.
+
+
+Chris Santiz, 2018
