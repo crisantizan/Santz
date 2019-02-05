@@ -1,11 +1,11 @@
-# Santz 0.9.2
+# Santz 0.9.3
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
-- [Instalación](#instalar)
+- [Instalación](#Instalar)
 - [Métodos de configuración](#Descripción-de-métodos-de-conexión)
 - [Modo estricto y tablas estáticas](#Modo-estricto-y-tablas-estáticas)
-  - [Modo estricto](#modo-estricto)
-  - [Tablas estáticas](#tablas-estáticas)
+  - [Modo estricto](#Modo-estricto)
+  - [Tablas estáticas](#Tablas-estáticas)
 - [Métodos de la clase Santz](#Métodos-de-la-clase-Santz)
   - [select](#select)
   - [where](#where)
@@ -24,20 +24,20 @@
   - [orderBy](#orderBy)
   - [limit](#limit)
   - [exec](#exec)
-- [Ejemplos de uso](#ejemplos-de-uso)
-  - [select simple](#select-simple)
-  - [select con where](#select-con-where)
-  - [inserción de datos](#inserción-de-datos)
-  - [actualización de datos](#actualización-de-datos)
-  - [sentencia INNER JOIN](#sentencia-INNER-JOIN)
-  - [ocultar filas](#ocultar-filas)
-  - [volver visibles filas ocultas](#volver-visibles-filas-ocultas)
-  - [ver todos los registros ocultos](#ver-todos-los-registros-ocultos)
-  - [eliminación de datos](#eliminación-de-datos)
-  - [ordenar valores devueltos](#ordenar-valores-devueltos)
-  - [limitar el número de filas a mostrar](#limitar-el-número-de-filas-a-mostrar)
-- [Ejecutando código SQL más complejo](#ejecutando-código-SQL-más-complejo)
-- [Con async - await](#con-async---await)
+- [Ejemplos de uso](#Ejemplos-de-uso)
+  - [select simple](#Select-simple)
+  - [select con where](#Select-con-where)
+  - [inserción de datos](#Inserción-de-datos)
+  - [actualización de datos](#Actualización-de-datos)
+  - [sentencia INNER JOIN](#Sentencia-INNER-JOIN)
+  - [ocultar filas](#Ocultar-filas)
+  - [volver visibles filas ocultas](#Volver-visibles-filas-ocultas)
+  - [ver todos los registros ocultos](#Ver-todos-los-registros-ocultos)
+  - [eliminación de datos](#Eliminación-de-datos)
+  - [ordenar valores devueltos](#Ordenar-valores-devueltos)
+  - [limitar el número de filas a mostrar](#Limitar-el-número-de-filas-a-mostrar)
+- [Ejecutando código SQL más complejo](#Ejecutando-código-SQL-más-complejo)
+- [Con async - await](#Con-async---await)
 
 `Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
@@ -53,18 +53,16 @@ const database = require('santz');
 
 // Credenciales básicas para establecer conexión a base de datos
 const config = {
-    "host"      : "127.0.0.1",
-    "user"      : "root",
-    "password"  : "",
-    "database"  : "nodejs"
+    host      : '127.0.0.1',
+    user      : 'root',
+    password  : '',
+    database  : 'nodejs'
 };
-
-// Constante que almacenará el objeto conexión
-const connection = database.getConnection(config);
-
-// Método que ejecutará la conexión, segundo parámetro 'true' si se quiere ver si la conexión fue exitosa en consola
-database.connect(connection, true);
-
+/*
+Método que ejecutará la conexión y al mismo tiempo la retornará.
+Para ver el estado de la conexión pasarle un segundo parámetro como «true». Omitirse cuando se sepa que todo ha ido bien.
+*/
+const connection = database.connect(config, true);
 // Obtener los métodos disponibles de la librería, listos para ejecutar
 const Model = database.Model({
     // Objecto conexión
@@ -78,12 +76,13 @@ const Model = database.Model({
 });
 ```
 ## Descripción de métodos de conexión
-* `getConnection(config)`: Método encargado de obtener el objeto conexión de la librería `MySQL`. Su parámetro `config` deberá ser un objeto que contendrá las credenciales básicas necesarias para establecer conexión con la base de datos.
-Lo que se obtenga aquí deberá ser pasado como parámetro al método `connect` y `Model` respectivamente.
+* `connect(config, showStatus = false)`: Método encargado de obtener el objeto conexión de la librería `MySQL`. Su parámetro `config` deberá ser un objeto que contendrá las credenciales básicas necesarias para establecer conexión con la base de datos. Si se quiere ver el estado de la conexión en consola, especificar el parámetro `showStatus` en «true».
 
-* `connect(connection, showMessageStatus)`: Está función ejecutará la conexión, y pondrá su objecto listo para realizar consultas. Su parámetro `connection` será el objeto conexión, y `showMessageStatus`, vendrá a ser un boleano que indicará si se quiere mostrar en consola si la conexión fue exitosa, por defecto será falso.
+  Retornará el mismo objeto de conexión que deberá ser pasado como parámetro al método `Model` para ser usado, finalmente, en la ejecución de queries.
 
-* `Model(objectConfig)`: Retornará una clase con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería. La propiedad `connection` será de igual manera el objeto conexión, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `Santz` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
+* `Model(objectConfig)`: Retornará una instancia de la clase `Santz` con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería.
+
+  La propiedad `connection` será el objeto conexión obtenido en el método `connect`, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `Santz` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
 ## Modo estricto y tablas estáticas
 Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas, a continuación se explican los conceptos:
  ### Modo estricto:
@@ -101,7 +100,7 @@ Constantemente se estará hablando de dos conceptos súper importantes, que ser�
 ## Métodos de la clase Santz
 > ### __`select()`__
 ### __Parámetros:__
-### columns : ...string | object 
+### columns : ...string | object
 
 Crea una consulta de tipo `SELECT`. Como parámetro se pueden pasar una serie de `strings`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas, cuando se requieran todas se puede usar `'*'`. Ahora bien, para consultas más completas, tipo `INNER JOIN`, el parámetro que se requiere es un objeto, donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar.
 - Ejemplos:
@@ -114,19 +113,16 @@ Crea una consulta de tipo `SELECT`. Como parámetro se pueden pasar una serie de
   select({user: ['id','name'], type:['name']})
   ```
   Ejemplos prácticos:
-  * [`select simple`](#select-simple)
-  * [`select con where`](#select-con-where)
+  * [`select simple`](#Select-simple)
+  * [`select con where`](#Select-con-where)
 > ### __`where()`__
 ### __Parámetros:__
 ### columnName: string
-### operator: string - default '='
+### operator: string
 ### value: string | number
-Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer parámetro recibirá el `identificador` o nombre de columna, de segundo el `operador` (=, LIKE, >, <, >= ...) por el cual se van a comparar los datos; si se omite por defecto será `'='`. Por último se tiene el `valor`, que va a ser el dato a buscar.
+Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer parámetro recibirá el `identificador` o nombre de columna, de segundo el `operador` (=, LIKE, >, <, >= ...) por el cual se van a comparar los datos. Por último se tiene el `valor`, que va a ser el dato a buscar.
 - Ejemplos:
   ```js
-  // Omitiendo el operador (id = 7)
-  where('id', 7)
-  // Especifícandolo
   where('id', '=', 7)
   // Utilizando el operador 'LIKE' (name LIKE %jos%)
   where('name', 'like', 'jos')
@@ -138,7 +134,7 @@ Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer paráme
 
 Inserta al query la cláusula `FROM`.
 
-El parámetro `tableName` hará referencia al nombre de la tabla donde se consultarán datos, y `staticTable` ([`Tablas Estáticas`](#tablas-estáticas)), que por defecto será falso, indica si sus valores serán estáticos o no, es decir, que el usuario no cambiará su información (_solo en [Modo Estricto](#modo-estricto) activado_)
+El parámetro `tableName` hará referencia al nombre de la tabla donde se consultarán datos, y `staticTable` ([`Tablas Estáticas`](#Tablas-estáticas)), que por defecto será falso, indica si sus valores serán estáticos o no, es decir, que el usuario no cambiará su información (_solo en [Modo Estricto](#Modo-estricto) activado_)
 * Ejemplos:
   ```js
   // De la tabla 'user' (modo estático desactivado)
@@ -162,7 +158,7 @@ Su parámetro `tabla`, indica el nombre de la tabla donde se insertarán las nue
   insert('user', true)
   ```
 Ejemplo práctico:
-* [`Inserción de datos`](#inserción-de-datos)
+* [`Inserción de datos`](#Inserción-de-datos)
 > ### `update()`
 ### __Parámetros:__
 ### tableName: string
@@ -179,12 +175,12 @@ Su parámetro `tabla`, indica la tabla donde se modificarán las filas.
   update('user', true)
   ```
 Ejemplo práctico:
-* [`Actualización de datos`](#actualización-de-datos)
+* [`Actualización de datos`](#Actualización-de-datos)
 > ### `values()`
 ### __Parámetros:__
 ### data: object
 
-Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el dato a insertar/modificar. Utilizarse solo desde los métodos [`insert`](#insert) o [`update`](#update). 
+Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el dato a insertar/modificar. Utilizarse solo desde los métodos [`insert`](#insert) o [`update`](#update).
 * Ejemplo:
   ```js
   // Inserta/modifica el valor de la columna `name`, `age` y `country`
@@ -205,41 +201,41 @@ Ejecutará una sentencia `DELETE` en el cual, a diferencia del método [`hidden`
   destroy('user').where('id', 7)
   ```
 Ejemplo práctico:
-* [`Eliminación de datos`](#eliminación-de-datos)
+* [`Eliminación de datos`](#Eliminación-de-datos)
 > ### `hidden()`
 ### __Parámetros:__
 ### tableName: string
-Solo en [`modo estricto`](#modo-estricto).
+Solo en [`modo estricto`](#Modo-estricto).
 
 Cambiará el estado de visibilidad de la filas seleccionadas. Esto impedirá que al intentar leer o modificar estos datos sea imposible con los métodos [`select`](#select) y [`update`](#update).
 * Ejemplo:
   ```js
-  // Oculta los datos de la columna `user` donde el `id` sea 5 
+  // Oculta los datos de la columna `user` donde el `id` sea 5
   hidden('user').where('id','=', 5)
   ```
-_Si se intenta llamar este método, con el  [`modo estricto`](#modo-estricto) desactivado, no se ejecutará._
+_Si se intenta llamar este método, con el  [`modo estricto`](#Modo-estricto) desactivado, no se ejecutará._
 
 Ejemplo práctico:
-* [`Ocultar filas`](#ocultar-filas)
+* [`Ocultar filas`](#Ocultar-filas)
 > ### `show()`
 ### __Parámetros:__
 ### tableName: string
-Solo en [`modo estricto`](#modo-estricto).
+Solo en [`modo estricto`](#Modo-estricto).
 
 Volverá visibles aquellas filas que han sido ocultas por el método [`hidden`](#hidden).
 * Ejemplo:
   ```js
-  // Vuelve visibles los datos de la columna `user` donde el `id` es 7 
+  // Vuelve visibles los datos de la columna `user` donde el `id` es 7
   show('user').where('user.id', 7)
   ```
-_Si se intenta llamar este método, con el  [`modo estricto`](#modo-estricto) desactivado, no se ejecutará._
+_Si se intenta llamar este método, con el  [`modo estricto`](#Modo-estricto) desactivado, no se ejecutará._
 
 Ejemplo práctico:
 * [`Volver visibles filas ocultas`](#Volver-visibles-filas-ocultas)
 > ### `rowsHidden()`
 ### __Parámetros:__
 ### tableName: string
-Solo en [`modo estricto`](#modo-estricto).
+Solo en [`modo estricto`](#Modo-estricto).
 
 Permitirá visualizar todas aquellas filas que han sido ocultas por el método [`hidden`](#hidden). A diferencia de [`show`](#show), este no cambiará el estado de visibilidad, solo leerá los datos.
 * Ejemplo:
@@ -247,7 +243,7 @@ Permitirá visualizar todas aquellas filas que han sido ocultas por el método [
   // Devuelve todas las filas ocultas de la columna `user`
   rowsHidden('user')
   ```
-_Si se intenta llamar este método, con el  [`modo estricto`](#modo-estricto) desactivado, no se ejecutará._
+_Si se intenta llamar este método, con el  [`modo estricto`](#Modo-estricto) desactivado, no se ejecutará._
 
 Ejemplo práctico:
 * [`Ver todos los registros ocultos`](#Ver-todos-los-registros-ocultos)
@@ -259,13 +255,13 @@ Ejemplo práctico:
 Método encargado de agregar al query la cláusula `INNER JOIN`.
 * Ejemplo:
   ```js
-  // Añade la tabla `types` 
+  // Añade la tabla `types`
   innerJoin('types')
   // Con una tabla estática
   innerJoin('types', true)
   ```
 Ejemplo práctico:
-* [`Sentencia INNER JOIN`](#sentencia-INNER-JOIN)
+* [`Sentencia INNER JOIN`](#Sentencia-INNER-JOIN)
 > ### `on()`
 ### __Parámetros:__
 ### firstIdentifier: string
@@ -280,7 +276,7 @@ Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a l
 > ### `and()`
 ### __Parámetros:__
 ### columnName: string
-### operator: string - default: '='
+### operator: string
 ### value: string | number
 
 Añade la cláusula `AND` al query.
@@ -292,13 +288,13 @@ Añade la cláusula `AND` al query.
 > ### `or()`
 ### __Parámetros:__
 ### columnName: string
-### operator: string - default: '='
+### operator: string
 ### value: string | number
 
 Añade la cláusula `OR` al query.
 * Ejemplo:
   ```js
-  // Donde el valor de `age` sea mayor o igual a 18 
+  // Donde el valor de `age` sea mayor o igual a 18
   or('user.age','>=', 18)
   ```
 > ### `orderBy()`
@@ -357,18 +353,18 @@ Resultado de ejecución mostrado en consola:
 ```sh
 SELECT `name` FROM `user` WHERE `user`.`state` = 1;
 
-[ 
+[
   RowDataPacket { name: 'Adrián' },
   RowDataPacket { name: 'María' },
   RowDataPacket { name: 'Sandra' }
 ]
 ```
-El identificador o columna `´state´`, llamado en este caso así. Será la columna que indica si ese registro es visible o no.  `1` es visible, `0` está oculto.  
+El identificador o columna `´state´`, llamado en este caso así. Será la columna que indica si ese registro es visible o no.  `1` es visible, `0` está oculto.
 
 El nombre de esta columna será asignado en el método `Model` con el parámetro `columnNameState`, y será insertado automáticamente en la query al ejecutar.
 > ### Select con where
 ```js
-const result = Model.select('*').from('user').where('user.id',2).exec();
+const result = Model.select('*').from('user').where('user.id','=',2).exec();
 
 result
     .then( res => console.log(res) )
@@ -381,14 +377,14 @@ MODO ESTRICTO: ACTIVADO
 SELECT * FROM `user` WHERE `user`.`state` = 1 AND `user.id` = 2;
 
 
-[ 
-  RowDataPacket { id: 2, name: 'Esteban Chávez', type: 1, state: 1 } 
+[
+  RowDataPacket { id: 2, name: 'Esteban Chávez', type: 1, state: 1 }
 ]
 ```
 > ### Inserción de datos
 ```js
 // Valores a insertar. Cada propiedad del objeto debe corresponder al nombre de la columna.
-let data = {name:"Alberto", type:2};
+let data = { name:"Alberto", type:2 };
 
 const result = Model.insert('user').values(data).exec();
 ```
@@ -406,14 +402,14 @@ OkPacket {
   warningCount: 0,
   message: '',
   protocol41: true,
-  changedRows: 0 
+  changedRows: 0
   }
 ```
-> ### Actualización de datos 
+> ### Actualización de datos
 ```js
-let data = {name:"Natalia", type:1};
+let data = { name: "Natalia", type: 1 };
 
-const result = Model.update('user').values(data).where('id', 2).exec();
+const result = Model.update('user').values(data).where('id','=', 2).exec();
 
 result
     .then( res => console.log(res) )
@@ -476,7 +472,7 @@ const result = Model.select({
       .from('user')
       .innerJoin('types')
       .on('user.type','types.id_type')
-      .where('id', 5)
+      .where('id','=', 5)
       .exec();
 ```
 ```sh
@@ -499,8 +495,6 @@ result
     .then( res => console.log(res) )
     .catch( err => console.log(err) )
 ```
-_Nótese que en el método [`where()`](#where) esta vez se le pasan 3 parámetros. Se le indica el operador de comparación `'='` de manera manual. Cuando este parámetro es omitido, implícitamente la librería lo añade._
-
 Resultado en consola:
 ```sh
 MODO ESTRICTO: ACTIVADO
@@ -520,7 +514,7 @@ OkPacket {
 ```
 > ### Volver visibles filas ocultas
 ```js
-const result = Model.show('user').where('id', 5).exec();
+const result = Model.show('user').where('id','=', 5).exec();
 
 result
     .then( res => console.log(res) )
@@ -560,11 +554,11 @@ SELECT * FROM `user` WHERE `user`.`state` = 0;
 [ RowDataPacket { id: 3, name: 'Tefy', type: 1, state: 0 } ]
 ```
 
-_Estas filas solo pueden ser mostradas mediante este método, [`rowsHidden()`](#rowsHidden)._ 
+_Estas filas solo pueden ser mostradas mediante este método, [`rowsHidden()`](#rowsHidden)._
 > ### ELiminación de datos
 
 ```js
-const result = Model.destroy('user').where('id', 6).exec();
+const result = Model.destroy('user').where('id','=', 6).exec();
 
 result
     .then( res => console.log(res) )
@@ -584,7 +578,7 @@ OkPacket {
   warningCount: 0,
   message: '',
   protocol41: true,
-  changedRows: 0 
+  changedRows: 0
   }
 ```
 > ### Ordenar valores devueltos
@@ -603,7 +597,7 @@ MODO ESTRICTO: ACTIVADO
 SELECT * FROM `user` WHERE `user`.`state` = 1 ORDER BY `id` ASC;
 
 
-[ 
+[
   RowDataPacket { id: 1, name: 'Natalia', type: 1, state: 1 },
   RowDataPacket { id: 2, name: 'Esteban Chávez', type: 1, state: 1 },
   RowDataPacket { id: 4, name: 'María', type: 1, state: 1 },
@@ -669,7 +663,7 @@ Si no conocías este «truco» es hora de ponerlo en práctica.
 
 Hasta ahí bien, ahora intentemos ejecutar esa misma sentencia SQL desde nuestra librería:
 ```js
-const result = model.update('users').values({ pj: 'pj + 1' }).where('id', 4).exec();
+const result = model.update('users').values({ pj: 'pj + 1' }).where('id','=', 4).exec();
 
 result.then( data => console.log(data) );
 ```
@@ -703,7 +697,7 @@ const data = {
   }
 };
 
-const result = model.update('users').values(data).where('id', 4).exec();
+const result = model.update('users').values(data).where('id','=', 4).exec();
 
 result.then( data => console.log(data) );
 ```
@@ -750,7 +744,7 @@ Casi siempre será así, pero hay otros casos donde no, no estaremos en el ámbi
 })(); // Paréntesis ejecutan la función, pueden recibir parámetros para su uso interno.
 
 ( async () => {
-  
+
 })();
 ```
 
@@ -788,4 +782,4 @@ Connected as id 7
 Para finalizar, hay que entender que en toda función que se use con «async - await» automáticamente estará retornando una promesa, concepto clave cuando pretendemos devolver valores y asignarlos a variables de manera tradicional.
 
 
-Chris Santiz, 2018
+Chris Santiz, 2019
