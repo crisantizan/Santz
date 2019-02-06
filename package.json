@@ -1,8 +1,9 @@
 {
   "name": "santz",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Pequeña librería para realizar consultas SQL desde código JavaScript",
   "main": "index.js",
+  "types":"./index.d.ts",
   "keywords": [
     "mysql",
     "nodejs",
@@ -10,7 +11,8 @@
     "santz"
   ],
   "dependencies": {
-    "mysql":"^2.16.0"
+    "mysql":"^2.16.0",
+    "@types/mysql":"^2.15.5"
   },
   "author": {
     "name":"Chris Santiz",

@@ -1,6 +1,6 @@
-# Santz 0.9.3
+# Santz 0.9.4
 ## Librería Nodejs para realizar consultas a base de datos MySQL
-
+Novedad: ¡Ahora se puede trabajar con TypeScript! [Ver](#Usar-con-Typescript)
 - [Instalación](#Instalar)
 - [Métodos de configuración](#Descripción-de-métodos-de-conexión)
 - [Modo estricto y tablas estáticas](#Modo-estricto-y-tablas-estáticas)
@@ -38,6 +38,7 @@
   - [limitar el número de filas a mostrar](#Limitar-el-número-de-filas-a-mostrar)
 - [Ejecutando código SQL más complejo](#Ejecutando-código-SQL-más-complejo)
 - [Con async - await](#Con-async---await)
+- [Usar con TypeScript](#Usar-con-Typescript)
 
 `Santz` es una pequeña librería que facilita la manera de realizar consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
@@ -100,21 +101,32 @@ Constantemente se estará hablando de dos conceptos súper importantes, que ser�
 ## Métodos de la clase Santz
 > ### __`select()`__
 ### __Parámetros:__
-### columns : ...string | object
+### columns : array | string | object
 
-Crea una consulta de tipo `SELECT`. Como parámetro se pueden pasar una serie de `strings`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas, cuando se requieran todas se puede usar `'*'`. Ahora bien, para consultas más completas, tipo `INNER JOIN`, el parámetro que se requiere es un objeto, donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar.
+Crea una consulta de tipo `SELECT`. Como parámetro se puede pasar un arreglo de `strings`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas. Cuando se requieran todas se puede usar `'*'` o como un arreglo `['*']`.  Ahora bien, para consultas más completas, tipo `INNER JOIN`, el parámetro que se requiere es un objeto, donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar.
+
+Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en el `select` invocar el método `strToSql` del modelo, colocarle como parámetro el string correspondiente al código SQL y luego pasarselo al método `select`.
 - Ejemplos:
   ```js
-  // Solo ciertas columnas
-  select('id', 'name', 'age', 'country')
   // Todas las columnas
   select('*')
+  // Todas las columnas
+  select(['*'])
+  // Solo ciertas columnas
+  select(['id', 'name', 'age', 'country'])
   // De tipo INNER JOIN
-  select({user: ['id','name'], type:['name']})
+  select({ user: ['id', 'name'], type: ['name'] })
+  /* --- Ejecutando funciones, código SQL --- */
+  const Model = database.Model({...});
+  // Objeto que permitirá ejecutar el string
+  const currentTime = Model.strToSql('CURRENT_TIMESTAMP()');
+  // Ejecutar el método
+  select(currentTime)
   ```
   Ejemplos prácticos:
   * [`select simple`](#Select-simple)
   * [`select con where`](#Select-con-where)
+  * [`select con strToSql`](#Select-con-strToSql)
 > ### __`where()`__
 ### __Parámetros:__
 ### columnName: string
@@ -198,7 +210,7 @@ Ejecutará una sentencia `DELETE` en el cual, a diferencia del método [`hidden`
 * Ejemplo:
   ```js
   // ELimina la fila donde el valor de la columna `id` sea igual a 7
-  destroy('user').where('id', 7)
+  destroy('user').where('id','=', 7)
   ```
 Ejemplo práctico:
 * [`Eliminación de datos`](#Eliminación-de-datos)
@@ -226,7 +238,7 @@ Volverá visibles aquellas filas que han sido ocultas por el método [`hidden`](
 * Ejemplo:
   ```js
   // Vuelve visibles los datos de la columna `user` donde el `id` es 7
-  show('user').where('user.id', 7)
+  show('user').where('user.id','=', 7)
   ```
 _Si se intenta llamar este método, con el  [`modo estricto`](#Modo-estricto) desactivado, no se ejecutará._
 
@@ -379,6 +391,32 @@ SELECT * FROM `user` WHERE `user`.`state` = 1 AND `user.id` = 2;
 
 [
   RowDataPacket { id: 2, name: 'Esteban Chávez', type: 1, state: 1 }
+]
+```
+> ### Select con strToSql
+```js
+// Modelo
+const Model = database.Model({...});
+// Objeto que permitirá ejecutar el string
+const currentTime = Model.strToSql('CURRENT_TIMESTAMP()'); // string del SQL
+// Ejecución de la sentencia
+const result = Model.select(currentTime).exec();
+
+result
+    .then( res => console.log(res) )
+    .catch( err => console.log(err) )
+```
+Resultado en consola:
+```sh
+
+*********** MODO ESTRICTO: ACTIVADO ***********
+
+QUERY:
+SELECT CURRENT_TIMESTAMP();
+
+***********************************************
+[
+  RowDataPacket { 'CURRENT_TIMESTAMP()': 2019-02-06T00:17:43.000Z }
 ]
 ```
 > ### Inserción de datos
@@ -612,7 +650,7 @@ SELECT * FROM `user` WHERE `user`.`state` = 1 ORDER BY `id` ASC;
   RowDataPacket { id: 17, name: 'Viviana', type: 1, state: 1 },
   RowDataPacket { id: 18, name: 'Chris', type: 1, state: 1 },
   RowDataPacket { id: 19, name: 'Mau', type: 2, state: 1 },
-  RowDataPacket { id: 20, name: 'Alberto', type: 2, state: 1 } 
+  RowDataPacket { id: 20, name: 'Alberto', type: 2, state: 1 }
 ]
 ```
 > ### Limitar el número de filas a mostrar
@@ -687,27 +725,24 @@ OkPacket {
 ```
 A primera parece que se ejecutó correctamente, si vemos la propiedad «changedRows» (indica el número de filas cuyo valor haya cambiado) del objeto devuelto tiene como valor «1», y efectivamente, revisa tu base de datos y te fijarás en sí, cambió, pero no de la manera esperada. Recordemos que su contenido anterior era «10», debería ser ahora «11» pero no, es «0» (en caso de que solo acepte números).
 
-Si revisamos el código SQL de nuestra ejecución en consola, a la columna «pj» se le está asignando como valor un string: «pj + 1», y es que para ejecutar código SQL en el valor de una propiedad del método `values` se debe recurrir a la función `toSqlString`, que deberá ser pasada a la propiedad requirida dentro de un objeto:
+Si revisamos el código SQL de nuestra ejecución en consola, a la columna «pj» se le está asignando como valor un string: «pj + 1», y es que para ejecutar código SQL en el valor de una propiedad del método `values` se debe recurrir a la función `strToSql`, contenida en el modelo, que deberá ser pasada a la propiedad correspondiente como su valor:
 ```js
-const data = {
-  /* Nombre de la columna */
-  pj: {
-    /* El string que retornará se ejecutará en la sentencia como si fuese código SQL */
-    toSqlString: () => '`pj` + 1'
-  }
-};
+// Se le indica, en el string, que incremente el valor de la columa «pj» en uno
+const increment = Model.strToSql('pj + 1');
 
-const result = model.update('users').values(data).where('id','=', 4).exec();
+const result = await Model.update('users').values({ pj: increment }).where('id','=', 4).exec();
 
 result.then( data => console.log(data) );
 ```
 Ejecución:
 ```sh
-MODO ESTRICTO: ACTIVADO
+************** MODO ESTRICTO: ACTIVADO **************
+
+QUERY:
 
 UPDATE `users` SET `pj` = `pj` + 1 WHERE `id` = 4 AND `users`.`state` = 1;
 
-Connected as id 108
+*****************************************************
 OkPacket {
   fieldCount: 0,
   affectedRows: 1,
@@ -753,8 +788,8 @@ Y una de las ventanjas de esta forma es el manejo de errores. Será de manera m�
 ```js
 ( async () => {
   try {
-    const result = await model.select.('nick').from('users').limit(5).exec();
-    console.log(result);)
+    const result = await Model.select(['nick']).from('users').limit(4).exec();
+    console.log(result));
   } catch(err) {
     // Cuando ocurre algún
     console.log(err);
@@ -766,20 +801,45 @@ Otra de las palabras claves es «await», esta indica que esperará a que la pro
 
 El resultado en consola será el mismo que como si se ejecutase de la manera tradidional:
 ```sh
-MODO ESTRICTO: ACTIVADO
+************** MODO ESTRICTO: ACTIVADO **************
 
-SELECT `nick` FROM `users` WHERE `users`.`state` = 1 LIMIT 5;
+QUERY:
 
-Connected as id 7
-[ RowDataPacket { nick: 'santz' },
-  RowDataPacket { nick: 'may' },
-  RowDataPacket { nick: 'sky' },
+SELECT `nick` FROM `users` WHERE `users`.`state` = 1 LIMIT 4;
+
+*****************************************************
+[
   RowDataPacket { nick: 'chris' },
-  RowDataPacket { nick: 'angel' }
+  RowDataPacket { nick: 'sky' },
+  RowDataPacket { nick: 'luc' },
+  RowDataPacket { nick: 'rex' }
 ]
 ```
 
 Para finalizar, hay que entender que en toda función que se use con «async - await» automáticamente estará retornando una promesa, concepto clave cuando pretendemos devolver valores y asignarlos a variables de manera tradicional.
 
+> ### Usar con TypeScript
+A partir de la versión `0.9.4` es posible el uso en TypeScript.
+```ts
+import { connect, Model, PoolConfig, Santz, Connection } from 'santz';
+
+const config: PoolConfig = {
+  host: '127.0.0.1',
+  user: 'root',
+  password: '',
+  database: 'triqui'
+};
+
+const connection: Connection = connect(config);
+
+const model: Santz = Model({
+  connection: connection,
+  strict: true,
+  columnNameState: 'state',
+  showQuery: true
+});
+
+// Ejecutar sentencias normalmente...
+```
 
 Chris Santiz, 2019

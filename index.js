@@ -1,5 +1,6 @@
 const pool = require('./lib/connection');
 const Santz = require('./lib/Santz');
+const mysql = require('mysql');
 
 module.exports = {
 
