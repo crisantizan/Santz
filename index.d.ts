@@ -1,45 +1,60 @@
-import { Connection, ConnectionConfig, ConnectionOptions, PoolConfig, Query, MysqlError, raw } from 'mysql';
+import {
+    Pool,
+    PoolConfig,
+    raw
+} from 'mysql';
 
 declare class Santz {
-    constructor(conection: Connection, strict?:boolean);
-    public select(columns: string[] | string | object, executable?: boolean): this;
+    constructor (pool: Pool, strict?:boolean);
+    public select (columns: string[] | string | object, executable?: boolean): this;
     public from (table: string, staticTable?: boolean): this;
-    public table(table: string, staticTable?: boolean): this;
-    public where(identifier: string, operator: string, value: string | number): this;
+    public table (table: string, staticTable?: boolean): this;
+    public where (identifier: string, operator: string, value: string | number): this;
     public insert (table: string, staticTable?:boolean): this;
     public update (table: string, staticTable?: boolean): this;
-    public values(values: object): this;
-    public destroy(table: string): this;
+    public values (values: object): this;
+    public destroy (table: string): this;
     public hidden (table: string): this;
     public show (table: string): this;
-    public rowsHidden(table: string): this;
+    public rowsHidden (table: string): this;
     public innerJoin (table: string, staticTable?: boolean): this;
     public on (firstIdentifier: string, secondIdentifier: string): this;
     public and (identifier: string, operator: string, value: string | number): this;
     public or (identifier: string, operator: string, value: string | number): this;
-    public orderBy(column: string, mode?: string): this;
-    public limit(startOrAmount: number, numRows?: number): this;
-    public exec (): Promise<Query["RowDataPacket"] | MysqlError>;
-    public strToSql(strSql: string): object;
+    public orderBy (column: string, mode?: string): this;
+    public limit (startOrAmount: number, numRows?: number): this;
+    public exec (): Promise<QueryResult | any>;
+    public strToSql (strSql: string): object;
 }
 
-declare function connect(config: PoolConfig, showOrHidden?: boolean): Connection;
+declare interface QueryResult {
+    fieldCount: number;
+    affectedRows: number;
+    insertId: number;
+    serverStatus: number;
+    warningCount: number;
+    message: string;
+    protocol41: boolean;
+    changedRows: number;
+}
 
-declare interface IModelConfig {
-    connection: Connection,
+declare function createPoolConnection(config: PoolConfig, showOrHidden?: boolean): Pool;
+
+declare interface ModelConfig {
+    pool: Pool,
     strict?: boolean;
     columnNameState?: string;
     showQuery?: boolean;
 }
 
-declare function Model(config: IModelConfig): Santz;
+declare function santzModel(config: ModelConfig): Santz;
 
 export {
-    connect,
-    Connection,
-    PoolConfig,
-    ConnectionOptions,
-    Model,
     Santz,
-    MysqlError
+    Pool,
+    createPoolConnection,
+    PoolConfig,
+    santzModel,
+    ModelConfig,
+    QueryResult,
 };
