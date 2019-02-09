@@ -3,7 +3,7 @@
   "version": "0.9.4",
   "description": "Pequeña librería para realizar consultas SQL desde código JavaScript",
   "main": "index.js",
-  "types":"./index.d.ts",
+  "types":"index.d.ts",
   "keywords": [
     "mysql",
     "nodejs",
@@ -13,6 +13,9 @@
   "dependencies": {
     "mysql":"^2.16.0",
     "@types/mysql":"^2.15.5"
+  },
+  "devDependencies": {
+    "typescript": "^3.2.2"
   },
   "author": {
     "name":"Chris Santiz",

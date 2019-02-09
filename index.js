@@ -1,14 +1,12 @@
-const poolConnection = require('./lib/connection');
+const mysql = require('mysql');
 const Santz = require('./lib/Santz');
 
 module.exports = {
-
-    createPoolConnection (poolConfig, showStatus=false) {
-        return poolConnection(poolConfig, showStatus);
+    createPool (poolConfig) {
+        return mysql.createPool(poolConfig);
     },
 
     santzModel ({ pool, strict=true, columnNameState=null, showQuery=true }) {
-
         if (strict && !columnNameState) {
             let error = new Error(`Si utiliza el modo estricto debe especificar el nombre de la columna que tendrán todas las tablas dinámicas.\n`);
             console.log(error.stack);
@@ -23,5 +21,4 @@ module.exports = {
         Model.showQuery = showQuery;
         return Model;
     }
-
 };
