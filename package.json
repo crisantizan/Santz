@@ -1,6 +1,6 @@
 {
   "name": "santz",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Pequeña librería para realizar consultas SQL desde código JavaScript",
   "main": "index.js",
   "types":"index.d.ts",
@@ -10,6 +10,9 @@
     "orm",
     "santz"
   ],
+  "scripts": {
+    "ts": "tsc -w"
+  },
   "dependencies": {
     "mysql":"^2.16.0",
     "@types/mysql":"^2.15.5"
