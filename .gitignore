@@ -1,1 +1,4 @@
 node_modules/
+build
+lib/Santz.js
+testing.ts
