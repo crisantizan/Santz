@@ -336,7 +336,7 @@ Método encargado de agregar al query la cláusula `RIGHT JOIN`.
   rightJoin('types', true)
   ```
 Ejemplo práctico:
-* <a href="#ejemplo-right-join">`Sentencia RIGHT JOIN`</a>
+* <a href="#ejemplo-right-join">Sentencia RIGHT JOIN</a>
 > ### `on()`
 ### __Parámetros:__
 ### firstIdentifier: string
