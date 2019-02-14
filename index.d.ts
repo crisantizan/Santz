@@ -17,7 +17,7 @@ declare class Santz {
     public destroy (table: string): this;
     public hidden (table: string): this;
     public show (table: string): this;
-    public rowsHidden (table: string): this;
+    public rowsHidden (table: string, columns?: string[]): this;
     public innerJoin (table: string, staticTable?: boolean): this;
     public leftJoin (table: string, staticTable?: boolean): this;
     public rightJoin (table: string, staticTable?: boolean): this;

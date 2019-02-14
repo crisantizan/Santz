@@ -54,7 +54,8 @@
     },
     "files":[
       "./lib/Santz",
-      "./index"
+      "./index",
+      "testing"
     ],
     "exclude": [
       "node_modules"

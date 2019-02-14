@@ -279,7 +279,7 @@ export class Santz {
 			_usedMethod = `hidden()`;
 			return this;
 		} else {
-			throw new Error('[Método hidden()]: El parámetro «table» debe ser un string y es requerido');
+			throw new Error('[Método hidden()]: El parámetro «table» debe ser un string y es obligatorio');
 		}
 	}
 	public show(table: string): this {
@@ -290,17 +290,28 @@ export class Santz {
 			_usedMethod = `show()`;
 			return this;
 		} else {
-			throw new Error('[Método show()]: El parámetro «table» debe ser un string y es requerido');
+			throw new Error('[Método show()]: El parámetro «table» debe ser un string y es obligatorio');
 		}
 	}
-	public rowsHidden(table: string): this {
+	public rowsHidden(table: string, columns: string[] = []): this {
 		if (table && typeof table === 'string') {
-			_query = `SELECT * FROM ?? WHERE ${_pool.escapeId(table)}.${_pool.escapeId(_delColumnName)} = 0`;
-			_arrValues.push(table);
+			_query = `SELECT * `;
+			// Cuando se quiera obtener solo ciertas columnas
+			if (columns.length > 0) {
+				_query = `SELECT ?? `;
+			}
+
+			_query += `FROM ?? WHERE ${_pool.escapeId(table)}.${_pool.escapeId(_delColumnName)} = 0`;
+
+			if (columns.length > 0) {
+				_arrValues.push(columns, table);
+			} else {
+				_arrValues.push(table);
+			}
 			_usedMethod = `rowsHidden()`;
 			return this;
 		} else {
-			throw new Error('[Método rowsHidden()]: El parámetro «table» debe ser un string y es requerido');
+			throw new Error('[Método rowsHidden()]: El parámetro «table» debe ser un string y es obligatorio');
 		}
 	}
 	public innerJoin(table: string, staticTable: boolean = false): this {
@@ -429,6 +440,7 @@ export class Santz {
 	public testConnection(): void {
 		_pool.getConnection((err, connection) => {
 			if (err) throw err;
+			connection.release();
 
 			return console.info(`\n                    **********************************************************\n                    *                                                        *\n*********************  Santz ha conectado exitosamente con la base de datos  *********************\n*********************                                                        *********************\n                    *                         ID: ${connection.threadId}                         *\n                    **********************************************************\n`);
 		});
@@ -495,6 +507,9 @@ export class Santz {
 			*/
 			// Parámetros finales a ejecutar
 			let stmt: string | QueryOptions = format(`${_query};`, _arrValues);
+			// Vaciar enseguida para poder ejecutar múltiples queris
+			_arrIdentifiers = [];
+			_arrValues = [];
 
 			// Mostrar o no mensajes en consola
 			if (_showQuery) {
@@ -547,8 +562,6 @@ export class Santz {
 // Formatear algunos valores
 function reset(): void {
 	_query = '';
-	_arrIdentifiers = [];
-	_arrValues = [];
 	_isJoin = false;
 	_firstColumnState = '';
 	_changeVisibility = false;

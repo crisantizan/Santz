@@ -1,7 +1,7 @@
 {
   "name": "santz",
-  "version": "0.9.5",
-  "description": "Pequeña librería para realizar consultas SQL desde código JavaScript",
+  "version": "0.9.6",
+  "description": "Pequeña librería para realizar consultas SQL desde métodos JavaScript",
   "main": "index.js",
   "types":"index.d.ts",
   "keywords": [
@@ -11,7 +11,9 @@
     "santz"
   ],
   "scripts": {
-    "ts": "tsc -w"
+    "ts": "tsc -w",
+    "rm": "rm -rf ./build",
+    "dev": "supervisor ./build/testing"
   },
   "dependencies": {
     "mysql":"^2.16.0",

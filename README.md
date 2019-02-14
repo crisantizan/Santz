@@ -1,4 +1,4 @@
-# Santz 0.9.5
+# Santz 0.9.6
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 Novedad: ¡Ahora se puede trabajar con TypeScript! <a href="#usar-con-typescript">ver</a>
 * <a href="#instalar">Instalación</a>
@@ -46,7 +46,7 @@ Novedad: ¡Ahora se puede trabajar con TypeScript! <a href="#usar-con-typescript
 
 `Santz` es una pequeña librería que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
 
-Escapará todos los datos ingresandos en los diferentes métodos, tantos los identificadores como sus valores, evitando así injecciones SQLs.
+Escapará todos los datos ingresandos en los diferentes métodos, tantos los identificadores como sus valores, evitando así injeccion SQL.
 
 <h2 id="instalar">Instalar</h2>
 
@@ -102,7 +102,7 @@ Vista en consola:
 
 <h2 id="descripcion-de-metodos-conexion">Descripción de métodos de conexión</h2>
 
-* `createSantz(poolConfig)`: Método encargado de obtener un objeto conexión Pool de la librería `MySQL`. Su parámetro `poolConfig` deberá ser un objeto que contendrá las credenciales básicas necesarias para establecer conexión con la base de datos.
+* `createPool(poolConfig)`: Método encargado de obtener un objeto conexión Pool de la librería `MySQL`. Su parámetro `poolConfig` deberá ser un objeto que contendrá las credenciales básicas necesarias para establecer conexión con la base de datos.
 Retornará el mismo objeto de conexión que deberá ser pasado como parámetro al método `modelSantz` para ser usado, finalmente, en la ejecución de queries.
 
 * `modelSantz(objectConfig)`: Retornará una instancia de la clase `Santz` con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería.
@@ -280,6 +280,7 @@ Ejemplo práctico:
 > ### `rowsHidden()`
 ### __Parámetros:__
 ### tableName: string
+### columns: type - string | default - []
 Solo en <a href="#modo-estricto">modo estricto</a>.
 
 Permitirá visualizar todas aquellas filas que han sido ocultas por el método <a href="#hidden">hidden</a>. A diferencia de <a href="#show">show</a>, este no cambiará el estado de visibilidad, solo leerá los datos.
@@ -287,6 +288,8 @@ Permitirá visualizar todas aquellas filas que han sido ocultas por el método <
   ```js
   // Devuelve todas las filas ocultas de la columna `user`
   rowsHidden('user')
+  // Obtener solo ciertas columnas
+  rowsHidden('user', ['id','nick'])
   ```
 _Si se intenta llamar este método, con el <a href="#modo-estricto">modo estricto</a> desactivado, no se ejecutará._
 
@@ -725,8 +728,13 @@ OkPacket {
 ```js
 (async () => {
   try {
-    const result = await model.rowsHidden('user').exec();
-    console.log(result);
+    // Todas las columnas
+    const result = model.rowsHidden('user').exec();
+    // Obteniendo solo ciertas columnas
+    const result1 = model.rowsHidden('user', ['id', 'nick']).exec();
+
+    const all = await Promise.all([result, result1]);
+    console.log(all);
 
   } catch (err) {
     console.log(err);
@@ -742,9 +750,18 @@ QUERY:
 
 SELECT * FROM `user` WHERE `user`.`state` = 0;
 
+QUERY:
+
+SELECT `id`, `nick` FROM `user` WHERE `user`.`state` = 0;
+
 **************************************************************************************************
 
-[ RowDataPacket { id: 3, name: 'Tefy', type: 1, state: 0 } ]
+[
+  # Resultado sentencia uno
+  [RowDataPacket { id: 3, name: 'Tefy', type: 1, state: 0 }],
+  # Resultado sentencia dos
+  [RowDataPacket { id: 3, name: 'Tefy'}]
+]
 ```
 
 _Estas filas solo pueden ser mostradas mediante este método, <a href="#rowshidden">rowsHidden()</a>._
@@ -986,7 +1003,7 @@ const poolConfig: PoolConfig = {
     database: 'santz'
 };
 
-const pool: Pool = createPool(poolConfig);
+const pool = createPool(poolConfig);
 
 const model = santzModel({
     pool,
