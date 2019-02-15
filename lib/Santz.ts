@@ -507,10 +507,6 @@ export class Santz {
 			*/
 			// Parámetros finales a ejecutar
 			let stmt: string | QueryOptions = format(`${_query};`, _arrValues);
-			// Vaciar enseguida para poder ejecutar múltiples queris
-			_arrIdentifiers = [];
-			_arrValues = [];
-
 			// Mostrar o no mensajes en consola
 			if (_showQuery) {
 				console.log(
@@ -531,6 +527,8 @@ export class Santz {
 			todos los registros deseados.
 			*/
 			stmt = (_isJoin) ? { sql: stmt, nestTables: '_' } : stmt;
+			// Resetear variables
+			reset();
 
 			_pool.getConnection((err, connection) => {
 				if (err) reject(err);
@@ -543,8 +541,6 @@ export class Santz {
 					if (_usedMethod && !_strictMode) {
 						return reject(`El método '${_usedMethod}' solo se puede usar en modo estricto`);
 					}
-					// Formatear variables
-					reset();
 
 					resolve(rows);
 				});
@@ -567,12 +563,12 @@ function reset(): void {
 	_changeVisibility = false;
 	_haveWhere = false;
 	_isInsert = false;
-	_showQuery = false;
+	_arrIdentifiers = [];
+	_arrValues = [];
 	_isDestroy = false;
 	_haveOn = false;
 	_arrColumnsState = [];
 	_order = '';
 	_isCreateStaticTable = false;
-	_usedMethod = '';
 	_strLimitClausule = '';
 }
