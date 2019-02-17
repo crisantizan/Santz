@@ -1,4 +1,4 @@
-# Santz 0.9.6
+# Santz 0.9.7
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 Novedad: ¡Ahora se puede trabajar con TypeScript! <a href="#usar-con-typescript">ver</a>
 * <a href="#instalar">Instalación</a>
