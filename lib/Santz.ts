@@ -58,8 +58,8 @@ let _pool: Pool,
 export class Santz {
   constructor(
     pool: Pool,
-    strict: boolean = true,
     private nestTables: boolean | '_',
+    strict: boolean = true,
   ) {
     _pool = pool;
     _strictMode = strict;

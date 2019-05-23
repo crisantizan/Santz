@@ -28,7 +28,7 @@ export function santzModel(config: ModelConfig): Santz {
     );
   }
 
-  const Model = new Santz(config.pool, config.strict, config.nestTables);
+  const Model = new Santz(config.pool, config.nestTables, config.strict);
   Model.columnNameState = config.columnNameState;
   Model.showQuery = config.showQuery;
   return Model;

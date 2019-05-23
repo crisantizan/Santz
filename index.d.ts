@@ -3,7 +3,7 @@ import { Pool, PoolConfig, raw } from 'mysql';
 type OrderMode = 'ASC' | 'DESC';
 
 declare class Santz {
-  constructor(pool: Pool, strict?: boolean);
+  constructor(pool: Pool, nestTables: true | '_', strict?: boolean,);
   public select(
     columns: string[] | string | object,
     executable?: boolean,
