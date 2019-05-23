@@ -3,7 +3,7 @@
   "version": "0.9.7",
   "description": "Pequeña librería para realizar consultas SQL desde métodos JavaScript",
   "main": "index.js",
-  "types":"index.d.ts",
+  "types": "index.d.ts",
   "keywords": [
     "mysql",
     "nodejs",
@@ -12,23 +12,24 @@
   ],
   "scripts": {
     "ts": "tsc -w",
+    "build": "yarn rm && tsc",
     "rm": "rm -rf ./build",
     "dev": "supervisor ./build/testing"
   },
   "dependencies": {
-    "mysql":"^2.16.0",
-    "@types/mysql":"^2.15.5"
+    "mysql": "^2.16.0",
+    "@types/mysql": "^2.15.5"
   },
   "devDependencies": {
     "typescript": "^3.2.2"
   },
   "author": {
-    "name":"Chris Santiz",
-    "email":"santzch@gmail.com"
+    "name": "Chris Santiz",
+    "email": "santzch@gmail.com"
   },
   "license": "MIT",
   "repository": {
-    "type":"git",
-    "url":"https://github.com/chrisantiz/Santz.git"
+    "type": "git",
+    "url": "https://github.com/chrisantiz/Santz.git"
   }
 }

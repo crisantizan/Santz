@@ -59,7 +59,7 @@ export class Santz {
   constructor(
     pool: Pool,
     strict: boolean = true,
-    private nestTables: boolean | '_' = true,
+    private nestTables: boolean | '_',
   ) {
     _pool = pool;
     _strictMode = strict;

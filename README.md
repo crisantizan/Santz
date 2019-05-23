@@ -45,9 +45,62 @@
 - <a href="#con-async-await">Con Async - Await</a>
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
-`Santz` es una pequeña librería que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar.
+<h2>Lo nuevo en la versión 0.9.7</h2>
 
-Escapará todos los datos ingresandos en los diferentes métodos, tantos los identificadores como sus valores, evitando así injeccion SQL.
+
+Una característica muy básica, pero que no venía incluida en versiones anteriores, es la de poder obtener los datos de las diferentes tablas, en consultas tipo `JOIN`, como objetos independientes. Hasta ahora se agregaba el prefijo «_» para separar el nombre de la tabla con el de la columna, situación que podría estar bien para ciertos casos pero no para la mayoría.
+A continuación puedes ver mejor de qué se trata:
+
+```js
+// consulta a ejecutar
+const result = model
+  .select({ users: ['id', 'nick'], country: ['name'] })
+  .from('users')
+  .innerJoin('country', true)
+  .on('users.country', 'country.id')
+  .where('users.id', '=', 4)
+  .exec();
+```
+
+```sh
+# resultado en versiones anteriores (prefijo _)
+
+[
+  RowDataPacket {
+    users_id: 4,
+    users_nick: 'Santz',
+    country_name: 'Colombia'
+  }
+]
+```
+
+```sh
+# ahora
+
+[
+  RowDataPacket {
+    users: { id: 4, nick: 'Santz' },
+    country: { name: 'Colombia' }
+  }
+]
+```
+
+A partir de ahora se obtendrán los datos por defecto de esta manera, pero si prefieres separar con el prefijo «_» es solo de espeficiarlo en el modelo con la propiedad «nestTables»
+
+```js
+const model = santzModel({
+  // ...
+  nestTables: '_'
+});
+```
+
+
+<h2>¿De qué se trata?</h2>
+
+
+`Santz` es una pequeña librería que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar. Similar a un ORM pero muy simplificado, va genial en proyectos pequeños.
+
+Escapará todos los datos ingresandos en los diferentes métodos, tantos los identificadores como sus valores, evitando así inyecciones SQL.
 
 <h2 id="instalar">Instalar</h2>
 
@@ -82,8 +135,8 @@ const model = santzModel({
   columnNameState: 'state',
   // Indica si se quiere ver mensajes de respuesta en consola, por defecto será verdadero
   showQuery: true,
-  // indica que al ejecutar sentencias de tipo JOIN, los resultados (tabla - columna) vengan separados por el prefijo «_». Por defecto será «true» lo que creará un objeto con el nombre de la tabla y sus propiedades corresponderán a las columnas.
-  nestTables: '_',
+  // indica que al ejecutar sentencias de tipo JOIN, los resultados (tabla - columna) vengan como objetos independientes. Una tabla será un objeto con el nombre nombre de la misma y sus propiedades corresponderán a las columnas.
+  nestTables: true, // valor por defecto, tambíen se puede especificar el prefijo «_»
 });
 ```
 
@@ -114,8 +167,6 @@ Vista en consola:
   Retornará el mismo objeto de conexión que deberá ser pasado como parámetro al método `modelSantz` para ser usado, finalmente, en la ejecución de queries.
 
 - `modelSantz(objectConfig)`: Retornará una instancia de la clase `Santz` con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería.
-
-  La propiedad `pool` será el objeto conexión obtenido en el método `createPool`, `strict` indicará si la librería utilizará el modo estricto, por defecto estará activado; se puede omitir, `columnNameState` es el nombre de la columna que le indicará a la clase `Santz` la visibilidad de las filas; esta columna deberá ser incluida en todas las tablas dinámicas en `modo estricto`, de lo contrario se puede omitir. Por último, `showQuery` será un boleano que indique si se quiere ver en consola la query actual en ejecución, por defecto será verdadero. Puede omitirse.
 
 <h2 id="modo-estricto-y-tablas-estaticas">Modo estricto y tablas estáticas</h2>
 Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas. A continuación se explican los conceptos:
@@ -687,7 +738,7 @@ OkPacket {
 ```
 
 > <h3 id="sentencias-join">Sentencias JOIN</h3>
-> Cuando la consulta a realizar es de tipo `JOIN`, al método <a href="#select">select</a> se le debe pasar un objeto en el cual sus llaves corresponderán al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a mostrar.
+Cuando la consulta a realizar es de tipo `JOIN`, al método <a href="#select">select</a> se le debe pasar un objeto en el cual sus llaves corresponderán al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a mostrar.
 
 <h3 id="ejemplo-inner-join">Ejemplo innerJoin()</h3>
 
@@ -720,11 +771,6 @@ QUERY:
 SELECT `users`.`id`, `users`.`nick`, `country`.`name` FROM `users` INNER JOIN `country` ON `users`.`country` = `country`.`id` WHERE `users`.`state` = 1;
 
 **************************************************************************************************
-# con la propiedad nestTables «_»
-[ RowDataPacket { users_id: 3, users_nick: 'Chris', country_name: 'Venezuela' },
-  RowDataPacket { users_id: 4, users_nick: 'Santz', country_name: 'Colombia' },
-  RowDataPacket { users_id: 5, users_nick: 'sky', country_name: 'none' } ]
-# con la propiedad nestTables en «true»
 [
   RowDataPacket {
     users:{ id: 3, nick: 'Chris' }, country: { name: 'Venezuela'}
@@ -764,7 +810,13 @@ QUERY:
 SELECT `users`.`id`, `users`.`nick`, `country`.`name` FROM `users` INNER JOIN `country` ON `users`.`country` = `country`.`id` WHERE `users`.`id` = 4 AND `users`.`state` = 1;
 
 **************************************************************************************************
-[ RowDataPacket { users_id: 4, users_nick: 'Santz', country_name: 'Colombia' } ]
+
+[
+  RowDataPacket {
+    users: { id: 4, nick: 'Santz' },
+    country: { name: 'Colombia' }
+  }
+]
 ```
 
 <h3 id="ejemplo-right-join">Ejemplo rightJoin() - leftJoin()</h3>
@@ -794,16 +846,28 @@ SELECT `users`.`id`, `users`.`nick`, `country`.`name` FROM `users` RIGHT JOIN `c
 
 **************************************************************************************************
 [
-  RowDataPacket { users_id: 5, users_nick: 'sky', country_name: 'none' },
-  RowDataPacket { users_id: 3, users_nick: 'Chris', country_name: 'Venezuela' },
-  RowDataPacket { users_id: 4, users_nick: 'Santz', country_name: 'Colombia' },
+  RowDataPacket {
+    users: { id: 5, nick: 'sky' },
+    country: { name: 'none' }
+  },
+  RowDataPacket {
+    users: { id: 3, nick: 'Chris' },
+    country: { name: 'Venezuela' }
+  },
+  RowDataPacket {
+    users: { id: 4, nick: 'Santz' },
+    country: { name: 'Colombia' }
+  },
   # Fila que no se encontraba relacionada con la tabla uno (users)
-  RowDataPacket { users_id: null, users_nick: null, country_name: 'Chile' }
+  RowDataPacket {
+    users: { id: null, nick: null },
+    country: { name: 'Chile' }
+  }
 ]
 ```
 
 > <h3 id="ocultar-filas">Ocultar filas</h3>
-> Cambia la visibilidad de la fila a oculto.
+Cambia la visibilidad de la fila a oculto.
 
 _Si se quisiese eliminar datos completamente, puede mirar el método de <a href="#eliminacion-de-datos">eliminación de datos</a>_
 
@@ -991,7 +1055,7 @@ SELECT * FROM `user` WHERE `user`.`state` = 1 ORDER BY `id` ASC;
 ```
 
 > <h3 id="limitar-el-numero-de-filas-a-mostrar">Limitar el número de filas a mostrar</h3>
-> _`Recordatorio:` Como en las filas de una tabla en MySql la primera posición siempre será «0», cuando le indicamos al método `limit` en qué fila empezar, hay que tener en cuenta que si le colocamos «1» esta nos mostrará el registro «2», y así con las demás posiciones._
+_`Recordatorio:` Como en las filas de una tabla en MySql la primera posición siempre será «0», cuando le indicamos al método `limit` en qué fila empezar, hay que tener en cuenta que si le colocamos «1» esta nos mostrará el registro «2», y así con las demás posiciones._
 
 ```js
 // Mostrando los primeros 5 registros
@@ -1038,7 +1102,7 @@ Resultado en consola:
 ```
 
 > <h3 id="ejecutando-codigo-sql-mas-complejo">Ejecutando código SQL más complejo</h3>
-> ¿Qué pasaría si quisiésemos actualizar una columna con valores numéricos incrementando su valor actual en uno, dos, etcétera?
+¿Qué pasaría si quisiésemos actualizar una columna con valores numéricos incrementando su valor actual en uno, dos, etcétera?
 
 Por ejemplo, en el siguiente caso tenemos una columna «pj» cuyo valor requiere ser incrementado en uno, su valor actual es «10».
 
@@ -1133,7 +1197,7 @@ OkPacket {
 Ahora es diferente, el valor que se le asigna a la columna no es un string como anteriormente lo era. De igual manera podemos verificar la propiedad «changedRows» y ratifica la modificación. La información en base de datos, esta vez, ha sido exitosa.
 
 > <h3 id="con-async-await">Con async - await</h3>
-> Como obtenemos los datos mediante promesas, por defecto se puede utilizar esta nueva manera para resolverlas (como ya se ha hecho en varios ejemplos anteriormente).
+Como obtenemos los datos mediante promesas, por defecto se puede utilizar esta nueva manera para resolverlas (como ya se ha hecho en varios ejemplos anteriormente).
 
 Para poder utilizar esta nueva metodología, hay que anteponerle el prefijo «async» a la función donde estemos trabajando:
 
@@ -1177,7 +1241,7 @@ Otra de las palabras claves es «await», esta indica que esperará a que la pro
 Para finalizar, hay que entender que en toda función que se use con «async - await» automáticamente estará retornando una promesa, concepto clave cuando pretendemos devolver valores y asignarlos a variables de manera tradicional.
 
 > <h3 id="usar-con-typescript">Usar con TypeScript</h3>
-> A partir de la versión `0.9.4` es posible el uso en TypeScript.
+A partir de la versión `0.9.4` es posible el uso en TypeScript.
 
 ```ts
 import { createPool, santzModel, PoolConfig, QueryResult } from 'santz';

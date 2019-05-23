@@ -56,12 +56,10 @@ declare interface ModelConfig {
   strict?: boolean;
   columnNameState?: string;
   showQuery?: boolean;
+  nestTables?: true | '_';
 }
 
-declare function santzModel(
-  config: ModelConfig,
-  nestTables?: boolean | '_',
-): Santz;
+declare function santzModel(config: ModelConfig): Santz;
 
 export {
   Santz,
