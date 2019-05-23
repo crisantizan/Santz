@@ -1,6 +1,6 @@
 {
   "name": "santz",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Pequeña librería para realizar consultas SQL desde métodos JavaScript",
   "main": "index.js",
   "types":"index.d.ts",
