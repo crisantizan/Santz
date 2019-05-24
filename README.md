@@ -1,4 +1,4 @@
-# Santz 0.9.7
+# Santz 0.9.8
 
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
@@ -45,7 +45,7 @@
 - <a href="#con-async-await">Con Async - Await</a>
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
-<h2>Lo nuevo en la versión 0.9.7</h2>
+<h2>Lo nuevo en la versión 0.9.8</h2>
 
 
 Una característica muy básica, pero que no venía incluida en versiones anteriores, es la de poder obtener los datos de las diferentes tablas, en consultas tipo `JOIN`, como objetos independientes. Hasta ahora se agregaba el prefijo «_» para separar el nombre de la tabla con el de la columna, situación que podría estar bien para ciertos casos pero no para la mayoría.
@@ -139,6 +139,7 @@ const model = santzModel({
   nestTables: true, // valor por defecto, tambíen se puede especificar el prefijo «_»
 });
 ```
+
 
 _Las mismas <a href="https://github.com/mysqljs/mysql/blob/master/Readme.md#connection-options" target="_blank">opciones de conexión</a> son admitidas cuando se crea un objeto Pool.
 Para ver las opciones específicas de esta puede ir a: <a href="https://github.com/mysqljs/mysql/blob/master/Readme.md#pool-options" target="_blank">opciones Pool</a>_
