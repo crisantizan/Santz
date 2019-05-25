@@ -8,9 +8,9 @@ interface IndexSignature<T> {
 }
 
 declare class Santz {
-  constructor(pool: Pool, nestTables: true | '_', strict?: boolean,);
+  constructor(pool: Pool, nestTables: true | '_', strict?: boolean);
   public select(
-    columns: IndexSignature<SelectTypes>,
+    columns: IndexSignature<SelectTypes> | string | string[],
     executable?: boolean,
   ): this;
   public from(table: string, staticTable?: boolean): this;
@@ -74,4 +74,7 @@ export {
   PoolConfig,
   ModelConfig,
   QueryResult,
+  OrderMode,
+  SelectTypes,
+  IndexSignature,
 };

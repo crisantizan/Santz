@@ -1,9 +1,10 @@
-# Santz 0.9.9
+# Santz 1.0.0
 
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
 - <a href="#novedades">Novedades</a>
 - <a href="#instalar">Instalación</a>
+- <a href="#descripcion">Santz</a>
 - <a href="#descripcion-de-metodos-conexion">Métodos de conexión</a>
 - <a href="#modo-estricto-y-tablas-estaticas">Modo estricto y tablas estáticas</a>
   - <a href="#modo-estricto">Modo estricto</a>
@@ -47,8 +48,7 @@
 - <a href="#con-async-await">Con Async - Await</a>
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
-
-<h2 id="novedades">Últimas novedades</h2>
+## Novedades
 
 - <h3>versión 0.9.9</h3>
 
@@ -89,7 +89,6 @@
     .on('users.country', 'country.id')
     .exec();
     ```
-
 
   - <h4>Seleccionar todas las columnas, menos las especificadas</h4>
 
@@ -171,7 +170,7 @@
   ```
 
 
-<h2>¿De qué se trata?</h2>
+<h2 id="descripcion">¿De qué se trata?</h2>
 
 
 `Santz` es una pequeña librería que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar. Similar a un ORM pero muy simplificado, va genial en proyectos pequeños.
@@ -266,11 +265,9 @@ Si se dejase el modo estricto inactivo no sería necesario indicar cuando una ta
 
 > ### **`select()`**
 
-### **Parámetros:**
-
-### columns : array | string | object
-
-### executable?: boolean - false
+#### **Parámetros:**
+- columns : array | string | object
+- executable?: boolean - false
 
 Crea una consulta de tipo `SELECT`. Como parámetro se puede pasar un arreglo de `string`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas. Cuando se requieran todas se puede usar `'*'` o como un arreglo `['*']`, o si se quiere seleccionar una sola columna se puede especificar como un string `'nick'`; por otro lado, si lo que se necesita es traer todas las columnas menos unas (o una) en específico, se insta a pasar un objeto con la propiedad `not`, cuyo valor será un arreglo de string con el nombre de columnas a omitir.
 
@@ -319,13 +316,10 @@ Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en 
 
 > ### **`where()`**
 
-### **Parámetros:**
-
-### columnName: string
-
-### operator: string
-
-### value: string | number
+#### **Parámetros:**
+- columnName: string
+- operator: string
+- value: string | number
 
 Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer parámetro recibirá el `identificador` o nombre de columna, de segundo el `operador` (=, LIKE, >, <, >= ...) por el cual se van a comparar los datos. Por último se tiene el `valor`, que va a ser el dato a buscar.
 
@@ -338,11 +332,9 @@ Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer paráme
 
 > ### `from()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable boolean - default: false
 
 Inserta al query la cláusula `FROM`.
 
@@ -358,11 +350,9 @@ El parámetro `tableName` hará referencia al nombre de la tabla donde se consul
 
 > ### `insert()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable: boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable: boolean - default: false
 
 Crea una sentencia `SQL` de inserción de datos.
 
@@ -380,11 +370,9 @@ Su parámetro `tabla`, indica el nombre de la tabla donde se insertarán las nue
 
 > ### `update()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable: boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable: boolean - default: false
 
 Sentencia `SQL` para la modificación de datos.
 
@@ -402,9 +390,8 @@ Su parámetro `tabla`, indica la tabla donde se modificarán las filas.
 
 > ### `values()`
 
-### **Parámetros:**
-
-### data: object
+#### **Parámetros:**
+- data: object
 
 Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el dato a insertar/modificar. Utilizarse solo desde los métodos <a href="#insert">insert</a> o <a href="#update">update</a>.
 
@@ -420,9 +407,8 @@ Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el d
 
 > ### `destroy()`
 
-### **Parámetros:**
-
-### tableName: string
+#### **Parámetros:**
+- tableName: string
 
 Ejecutará una sentencia `DELETE` en el cual, a diferencia del método <a href="#hidden">hidden</a>, eliminará definitivamente los datos especificados.
 
@@ -436,9 +422,8 @@ Ejecutará una sentencia `DELETE` en el cual, a diferencia del método <a href="
 
 > ### `hidden()`
 
-### **Parámetros:**
-
-### tableName: string
+#### **Parámetros:**
+- tableName: string
 
 Solo en <a href="#modo-estricto">modo estricto</a>.
 
@@ -457,9 +442,8 @@ Ejemplo práctico:
 
 > ### `show()`
 
-### **Parámetros:**
-
-### tableName: string
+#### **Parámetros:**
+- tableName: string
 
 Solo en <a href="#modo-estricto">modo estricto</a>.
 
@@ -477,11 +461,9 @@ Ejemplo práctico:
 
 > ### `rowsHidden()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### columns: type - string | default - []
+#### **Parámetros:**
+- tableName: string
+- columns: type - string | default - []
 
 Solo en <a href="#modo-estricto">modo estricto</a>.
 
@@ -502,11 +484,9 @@ Ejemplo práctico:
 
 > ### `innerJoin()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable: boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable: boolean - default: false
 
 Método encargado de agregar al query la cláusula `INNER JOIN`.
 
@@ -522,11 +502,9 @@ Método encargado de agregar al query la cláusula `INNER JOIN`.
 
 > ### `leftJoin()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable: boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable: boolean - default: false
 
 Método encargado de agregar al query la cláusula `LEFT JOIN`.
 
@@ -542,11 +520,9 @@ Método encargado de agregar al query la cláusula `LEFT JOIN`.
 
 > ### `rightJoin()`
 
-### **Parámetros:**
-
-### tableName: string
-
-### staticTable: boolean - default: false
+#### **Parámetros:**
+- tableName: string
+- staticTable: boolean - default: false
 
 Método encargado de agregar al query la cláusula `RIGHT JOIN`.
 
@@ -562,11 +538,9 @@ Método encargado de agregar al query la cláusula `RIGHT JOIN`.
 
 > ### `on()`
 
-### **Parámetros:**
-
-### firstIdentifier: string
-
-### secondIdentifier: string
+#### **Parámetros:**
+- firstIdentifier: string
+- secondIdentifier: string
 
 Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a los identificadores, o nombre de columnas, a comparar.
 
@@ -578,13 +552,10 @@ Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a l
 
 > ### `and()`
 
-### **Parámetros:**
-
-### columnName: string
-
-### operator: string
-
-### value: string | number
+#### **Parámetros:**
+- columnName: string
+- operator: string
+- value: string | number
 
 Añade la cláusula `AND` al query.
 
@@ -596,13 +567,11 @@ Añade la cláusula `AND` al query.
 
 > ### `or()`
 
-### **Parámetros:**
+#### **Parámetros:**
 
-### columnName: string
-
-### operator: string
-
-### value: string | number
+- columnName: string
+- operator: string
+- value: string | number
 
 Añade la cláusula `OR` al query.
 
@@ -614,7 +583,7 @@ Añade la cláusula `OR` al query.
 
 > ### `orderBy()`
 
-### **Parámetros:**
+#### **Parámetros:**
 
 - columnName: string
 - mode: string - default: 'ASC'
@@ -633,7 +602,7 @@ Ordena ascendente o descendentemente todas las filas obtenidas, por los valores 
 
 > ### `limit()`
 
-### **Parámetros:**
+#### **Parámetros:**
 
 - startOrAmount: number
 - numRows: number
@@ -973,7 +942,9 @@ SELECT `users`.`id`, `users`.`nick`, `country`.`name` FROM `users` RIGHT JOIN `c
 ```
 
 > <h3 id="omitiendo-columnas">Omitiendo columnas</h3>
+
 De la columna «users» (id, nick, country, state) omitir las columnas «state, country». A continuación se estará utilizando la sentencia `INNER JOIN`, pero bien que se pueden usar `LEFT-RIGH JOIN.`
+
 ```js
 // select normal
 const result = await model
@@ -1022,6 +993,7 @@ Resultado en consola:
 ```
 
 > <h3 id="ocultar-filas">Ocultar filas</h3>
+
 Cambia la visibilidad de la fila a oculto.
 
 _Si se quisiese eliminar datos completamente, puede mirar el método de <a href="#eliminacion-de-datos">eliminación de datos</a>_
@@ -1258,6 +1230,7 @@ Resultado en consola:
 ```
 
 > <h3 id="ejecutando-codigo-sql-mas-complejo">Ejecutando código SQL más complejo</h3>
+
 ¿Qué pasaría si quisiésemos actualizar una columna con valores numéricos incrementando su valor actual en uno, dos, etcétera?
 
 Por ejemplo, en el siguiente caso tenemos una columna «pj» cuyo valor requiere ser incrementado en uno, su valor actual es «10».
@@ -1353,6 +1326,7 @@ OkPacket {
 Ahora es diferente, el valor que se le asigna a la columna no es un string como anteriormente lo era. De igual manera podemos verificar la propiedad «changedRows» y ratifica la modificación. La información en base de datos, esta vez, ha sido exitosa.
 
 > <h3 id="con-async-await">Con async - await</h3>
+
 Como obtenemos los datos mediante promesas, por defecto se puede utilizar esta nueva manera para resolverlas (como ya se ha hecho en varios ejemplos anteriormente).
 
 Para poder utilizar esta nueva metodología, hay que anteponerle el prefijo «async» a la función donde estemos trabajando:
@@ -1397,6 +1371,7 @@ Otra de las palabras claves es «await», esta indica que esperará a que la pro
 Para finalizar, hay que entender que en toda función que se use con «async - await» automáticamente estará retornando una promesa, concepto clave cuando pretendemos devolver valores y asignarlos a variables de manera tradicional.
 
 > <h3 id="usar-con-typescript">Usar con TypeScript</h3>
+
 A partir de la versión `0.9.4` es posible el uso en TypeScript.
 
 ```ts

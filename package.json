@@ -1,6 +1,6 @@
 {
   "name": "santz",
-  "version": "0.9.9",
+  "version": "1.0.0",
   "description": "Pequeña librería para realizar consultas SQL desde NodeJS a MySQL",
   "main": "index.js",
   "types": "index.d.ts",

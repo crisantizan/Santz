@@ -5,18 +5,12 @@
  */
 
 import { Pool, raw, format, QueryOptions } from 'mysql';
+import { IndexSignature, OrderMode, SelectTypes } from '../index.d';
 
 interface ILengthKey {
   length?: number;
   [key: string]: any;
 }
-interface IndexSignature<T> {
-  [key: string]: T;
-}
-// Tipos que aceptará el método select como primer prámetro
-type SelectTypes = string | string[] | object | boolean;
-// Valores que aceptará el método orderBy como segundo parámetro
-type OrderMode = 'ASC' | 'DESC';
 
 // Conexión a la base de datos
 let _pool: Pool,
@@ -90,7 +84,7 @@ export class Santz {
     return raw(strSql);
   }
   public select(
-    columns: IndexSignature<SelectTypes>,
+    columns: IndexSignature<SelectTypes> | string | string[],
     executable: boolean = false,
   ): this {
     if (columns) {
@@ -116,7 +110,7 @@ export class Santz {
       if (typeof columns === 'object' && columns.hasOwnProperty('not')) {
         _query += 'SELECT *';
         // almacenar las columnas que se quieren omitir de esta tabla
-        _notColumns['not'] = <string[]>columns['not'];
+        _notColumns['not'] = (columns as IndexSignature<string[]>)['not'];
         return this;
       }
       // Convertirlo en un objeto con índice y la propiedad length
