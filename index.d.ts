@@ -1,11 +1,16 @@
 import { Pool, PoolConfig, raw } from 'mysql';
 
 type OrderMode = 'ASC' | 'DESC';
+type SelectTypes = string | string[] | object | boolean;
+
+interface IndexSignature<T> {
+  [key: string]: T;
+}
 
 declare class Santz {
   constructor(pool: Pool, nestTables: true | '_', strict?: boolean,);
   public select(
-    columns: string[] | string | object,
+    columns: IndexSignature<SelectTypes>,
     executable?: boolean,
   ): this;
   public from(table: string, staticTable?: boolean): this;
