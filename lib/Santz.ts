@@ -10,9 +10,11 @@ interface ILengthKey {
   length?: number;
   [key: string]: any;
 }
-type test<T> = { [P in keyof T]?: T[P] };
+interface IndexSignature<T> {
+  [key: string]: T;
+}
 // Tipos que aceptará el método select como primer prámetro
-type SelectTypes = string | string[] | object;
+type SelectTypes = string | string[] | object | boolean;
 // Valores que aceptará el método orderBy como segundo parámetro
 type OrderMode = 'ASC' | 'DESC';
 
@@ -53,7 +55,9 @@ let _pool: Pool,
   // Saber cuál método (show, hidden, rowsHidden) se usó en modo no estricto
   _usedMethod: string,
   // Guardar string de la cláusula LIMIT cuando esta se agregue
-  _strLimitClausule: string;
+  _strLimitClausule: string,
+  // columnas que se quieren omitir
+  _notColumns: { [key: string]: string[] };
 
 export class Santz {
   constructor(
@@ -80,14 +84,21 @@ export class Santz {
     _isCreateStaticTable = false;
     _usedMethod = '';
     _strLimitClausule = '';
+    _notColumns = {};
   }
   public strToSql(strSql: string): object {
     return raw(strSql);
   }
-  public select(columns: SelectTypes, executable: boolean = false): this {
+  public select(
+    columns: IndexSignature<SelectTypes>,
+    executable: boolean = false,
+  ): this {
     if (columns) {
       // Cuando se pasa como parámetro un objeto devuelto por el método «strToSql»
-      if (columns.hasOwnProperty('toSqlString')) {
+      if (
+        typeof columns === 'object' &&
+        columns.hasOwnProperty('toSqlString')
+      ) {
         // Verificar antes que se haya pasado un «true»
         switch (executable) {
           case true:
@@ -100,6 +111,13 @@ export class Santz {
               '[Método select()]: para poder ejecutar código mediante el método «strToSql» se requiere el paso de un segundo parámetro con un valor de «true»',
             );
         }
+      }
+      // si se quieren omitir ciertas columnas (consulta select normal)
+      if (typeof columns === 'object' && columns.hasOwnProperty('not')) {
+        _query += 'SELECT *';
+        // almacenar las columnas que se quieren omitir de esta tabla
+        _notColumns['not'] = <string[]>columns['not'];
+        return this;
       }
       // Convertirlo en un objeto con índice y la propiedad length
       const param: ILengthKey = columns as object;
@@ -116,12 +134,57 @@ export class Santz {
             return this;
           } else {
             throw new Error(
-              '[Método select()]: Para seleccionar todas las filas en una consulta JOIN, debe pasar en un objeto la propiedad especial «_all» con un valor booleano «true»',
+              '[Método select()]: Para seleccionar todas las filas, de todas las tablas, en una consulta JOIN, debe pasar en un objeto la propiedad especial «all» con un valor booleano «true»',
             );
           }
         }
-        // Escapar identificadores y sus valores
+        // Cuando se quieren columnas en específico
+        // escapar identificadores y sus valores
         for (let key in param) {
+          // si se quieren obtener todas las columnas de esta tabla
+          if (typeof param[key] === 'string') {
+            // verificar que es un string y que sea = *
+            if (param[key] !== '*') {
+              throw new Error(
+                `[Método select]: «${
+                  param[key]
+                }» es un valor inválido. Solo se acepta el carácter «*» para obtener todas las columnas de la tabla «${key}». Si lo que se necesita es obtener solo ciertas columnas debe pasarse un arreglo de string con los nombres.`,
+              );
+            }
+            // todas de esta tabla
+            _query += `${_pool.escapeId(`${key}`)}.*, `;
+            continue;
+          }
+
+          // cuando se quieren obtener todas menos ciertas columnas
+          if (
+            typeof param[key] === 'object' &&
+            param[key].hasOwnProperty('not')
+          ) {
+            // verificar que la propiedad nestTables esté en verdadero
+            if (this.nestTables === '_') {
+              throw new Error(
+                `[Método select]: No se puede omitir columnas con la propiedad «nestTables» en «_», para acceder a esta característica colocarlo en «true».`,
+              );
+            }
+            // cuando la propiedad «not» es diferente a un objeto o biene un array vacío
+            if (
+              typeof param[key]['not'] !== 'object' ||
+              param[key]['not'].length < 1
+            ) {
+              throw new Error(
+                `[Método select]: La propiedad «not» debe ser un arreglo de string, especificando las columnas que no quiere mostrar.`,
+              );
+            }
+            // seleccionar todo de esta tabla
+            _query += `${_pool.escapeId(`${key}`)}.*, `;
+
+            // almacenar las columnas que se quieren omitir de esta tabla
+            _notColumns[key] = param[key]['not'] as string[];
+            continue;
+          }
+
+          // cuando se quieren solo ciertas columnas especificadas
           for (let value of param[key]) {
             _query += `${_pool.escapeId(`${key}.${value}`)}, `;
           }
@@ -625,6 +688,52 @@ export class Santz {
             return reject(
               `El método '${_usedMethod}' solo se puede usar en modo estricto`,
             );
+          }
+
+          // cuando se quieren omitir ciertas columnas
+          if (Object.keys(_notColumns).length > 0) {
+            // consulta select normal
+            if (_notColumns.hasOwnProperty('not')) {
+              rows = rows.map((row: any) => {
+                // columnas a omitir
+                const columns = _notColumns['not'];
+                // recorrer propiedades de la fila actual
+                for (const prop in row) {
+                  // verificar si la propiedad tiene que ser eliminada
+                  if (columns.some(column => column === prop)) {
+                    delete row[prop];
+                  }
+                }
+                // retornar la fila transformada (o no)
+                return row;
+              });
+              // (sentencias JOIN)
+            } else {
+              // recorrer todas las filas
+              rows = rows.map((row: any) => {
+                // recorrer el objeto con las tablas y sus propiedades a omitir.
+                for (const table in _notColumns) {
+                  // verificar que la tabla exista en el resultado obtenido
+                  if (row.hasOwnProperty(table)) {
+                    // recorrer las propiedades de la tabla
+                    for (const prop in row[table]) {
+                      // recorrer las propiedades de la tabla actual que van a ser eliminadas
+                      for (const propToDelete of _notColumns[table]) {
+                        // verificar que la propiedad actual vaya a ser eliminada
+                        if (prop === propToDelete) {
+                          // eliminar
+                          delete row[table][propToDelete];
+                        }
+                      }
+                    }
+                  }
+                }
+                // retornar la fila transformada (o no)
+                return row;
+              });
+            }
+            // resetar valor
+            _notColumns = {};
           }
 
           resolve(rows);

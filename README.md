@@ -1,7 +1,8 @@
-# Santz 0.9.8
+# Santz 0.9.9
 
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
+- <a href="#novedades">Novedades</a>
 - <a href="#instalar">Instalación</a>
 - <a href="#descripcion-de-metodos-conexion">Métodos de conexión</a>
 - <a href="#modo-estricto-y-tablas-estaticas">Modo estricto y tablas estáticas</a>
@@ -35,6 +36,7 @@
   - <a href="#actualizacion-de-datos">Actualización de datos</a>
   - <a href="#ejemplo-inner-join">Sentencia INNER JOIN</a>
   - <a href="#ejemplo-right-join">Sentencia RIGHT/LEFT JOIN</a>
+  - <a href="#omitiendo-columnas">Omitir columnas</a>
   - <a href="#ocultar-filas">Ocultas filas</a>
   - <a href="#volver-visibles-filas-ocultas">Volver visibles filas ocultas</a>
   - <a href="#ver-todos-los-registros-ocultos">Ver todos los registros ocultos</a>
@@ -45,54 +47,128 @@
 - <a href="#con-async-await">Con Async - Await</a>
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
-<h2>Lo nuevo en la versión 0.9.8</h2>
+
+<h2 id="novedades">Últimas novedades</h2>
+
+- <h3>versión 0.9.9</h3>
+
+  - <h4>Seleccionar todas las columnas (de solo una tabla) en una consulta tipo JOIN</h4>
+
+    En las versiones anteriores el poder seleccionar todas las columnas de una tabla (en una consulta `JOIN`) no era posible. Lo más cercano era seleccionar todas las columnas de todas las tablas relacionadas:
+    ```js
+    const result = await model.select({
+      all: true
+    })
+    .from('users')
+    .rightJoin('country', true)
+    // ...
+    ```
+    con esto se obtienen todas las columnas de las tablas «users» y «country», ¿pero y si en la tabla «users» solo requiero ciertas columnas?
+
+    Desde la versión `0.9.9` es posible:
+    ```js
+    // solo «id, nick» de «users» y todas de «country»
+    const result = await model
+    .select({
+      users: ['id','nick'],
+      country: '*'
+    })
+    .from('users', true)
+    .innerJoin('country', true)
+    .on('users.country', 'country.id')
+    .exec();
+
+    // si se prefiere, se puede obtener el mismo resultado (todas las columnas - todas las tablas), pero especificando por tabla
+    const result = await model
+    .select({
+      users: '*',
+      country: '*'
+    })
+    .from('users', true)
+    .innerJoin('country', true)
+    .on('users.country', 'country.id')
+    .exec();
+    ```
 
 
-Una característica muy básica, pero que no venía incluida en versiones anteriores, es la de poder obtener los datos de las diferentes tablas, en consultas tipo `JOIN`, como objetos independientes. Hasta ahora se agregaba el prefijo «_» para separar el nombre de la tabla con el de la columna, situación que podría estar bien para ciertos casos pero no para la mayoría.
-A continuación puedes ver mejor de qué se trata:
+  - <h4>Seleccionar todas las columnas, menos las especificadas</h4>
 
-```js
-// consulta a ejecutar
-const result = model
-  .select({ users: ['id', 'nick'], country: ['name'] })
-  .from('users')
-  .innerJoin('country', true)
-  .on('users.country', 'country.id')
-  .where('users.id', '=', 4)
-  .exec();
-```
+    _Obligatorio tener la propiedad «nestTables» en «true», no funciona con el prefijo._
 
-```sh
-# resultado en versiones anteriores (prefijo _)
+    Algo que muchas veces es muy necesario, es el de poder seleccionar todas las columnas de una tabla pero omitiendo alguna/s. Por ejemplo: de la tabla «users» (id, nick, country, state) se requieren todas menos «state»; a partir de ahora es posible:
 
-[
-  RowDataPacket {
-    users_id: 4,
-    users_nick: 'Santz',
-    country_name: 'Colombia'
-  }
-]
-```
+    ```js
+    // select normal
+    const result = await model
+    .select({
+      // se puede espeficiar las columnas que sean necesarias
+      not: ['state']
+    })
+    .from('users', true)
+    .limit(1)
+    .exec();
 
-```sh
-# ahora
+    // tipo JOIN
+    const result = await model
+    .select({
+      users: { not: ['state'] },
+      country: '*'
+    })
+    .from('users', true)
+    .innerJoin('country', true)
+    .on('users.country', 'country.id')
+    .exec();
+    ```
+    Lo que se hizo arriba es omitir solo la columna «state» de «users», el resto serán obtenidas. Como se puede apreciar, es posible gracias a la asignación de la propiedad «not» a la tabla (o como propiedad del parámetro del método `select`); esta será un arreglo de string con el nombre de las columnas a omitir.
 
-[
-  RowDataPacket {
-    users: { id: 4, nick: 'Santz' },
-    country: { name: 'Colombia' }
-  }
-]
-```
 
-A partir de ahora se obtendrán los datos por defecto de esta manera, pero si prefieres separar con el prefijo «_» es solo de espeficiarlo en el modelo con la propiedad «nestTables»
+- <h3>versión 0.9.8</h3>
 
-```js
-const model = santzModel({
-  // ...
-  nestTables: '_'
-});
-```
+  Una característica muy básica, pero que no venía incluida en versiones anteriores, es la de poder obtener los datos de las diferentes tablas, en consultas tipo `JOIN`, como objetos independientes. Hasta ahora se agregaba el prefijo «_» para separar el nombre de la tabla con el de la columna, situación que podría estar bien para ciertos casos pero no para la mayoría.
+  A continuación puedes ver mejor de qué se trata:
+
+  ```js
+  // consulta a ejecutar
+  const result = model
+    .select({ users: ['id', 'nick'], country: ['name'] })
+    .from('users')
+    .innerJoin('country', true)
+    .on('users.country', 'country.id')
+    .where('users.id', '=', 4)
+    .exec();
+  ```
+
+  ```sh
+  # resultado en versiones anteriores (prefijo _)
+
+  [
+    RowDataPacket {
+      users_id: 4,
+      users_nick: 'Santz',
+      country_name: 'Colombia'
+    }
+  ]
+  ```
+
+  ```sh
+  # ahora
+
+  [
+    RowDataPacket {
+      users: { id: 4, nick: 'Santz' },
+      country: { name: 'Colombia' }
+    }
+  ]
+  ```
+
+  A partir de ahora se obtendrán los datos por defecto de esta manera, pero si prefieres separar con el prefijo «_» es solo de especificarlo en el modelo con la propiedad «nestTables»
+
+  ```js
+  const model = santzModel({
+    // ...
+    nestTables: '_'
+  });
+  ```
 
 
 <h2>¿De qué se trata?</h2>
@@ -196,7 +272,11 @@ Si se dejase el modo estricto inactivo no sería necesario indicar cuando una ta
 
 ### executable?: boolean - false
 
-Crea una consulta de tipo `SELECT`. Como parámetro se puede pasar un arreglo de `strings`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas. Cuando se requieran todas se puede usar `'*'` o como un arreglo `['*']`, o si se quiere seleccionar una sola columna se puede especificar como un string `'nick'`. Ahora bien, para consultas más completas, tipo `JOIN (INNER, LEFT, RIGHT)`, el parámetro que se requiere es un objeto, donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar. Si se quisiese seleccionar todas las columnas en una consulta de tipo `JOIN`, se pasará un objeto con una propiedad especial `all` cuyo valor será un `boolean` con `true`.
+Crea una consulta de tipo `SELECT`. Como parámetro se puede pasar un arreglo de `string`, identificando cada uno como el nombre de una columna; esto cuando se quiera traer información de ciertas columnas. Cuando se requieran todas se puede usar `'*'` o como un arreglo `['*']`, o si se quiere seleccionar una sola columna se puede especificar como un string `'nick'`; por otro lado, si lo que se necesita es traer todas las columnas menos unas (o una) en específico, se insta a pasar un objeto con la propiedad `not`, cuyo valor será un arreglo de string con el nombre de columnas a omitir.
+
+Para consultas más completas, tipo `JOIN (INNER, LEFT, RIGHT)`, el parámetro que se requiere es un objeto (sí, o sí), donde cada propiedad o llave del mismo hará referencia al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a consultar. Si se quisiese seleccionar todas las columnas en una consulta de tipo `JOIN`, se pasará un objeto con una propiedad especial `all` cuyo valor será un `boolean` con `true`; aunque también es posible espeficarlo en cada columna. Ahora cada propiedad del objeto no será un arrego, sino un string de valor `"*"`.
+
+Para omitir columnas en consultas `JOIN` es muy silimar a como si fuese un select normal, a direferencia de que ahora el objeto con la propiedad `not` no será pasado como parámetro al método `select` sino a la tabla en específico.
 
 Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en el `select`, se debe invocar el método `strToSql` del modelo, colocarle como parámetro el string correspondiente al código SQL y luego pasarselo al método `select`. Este último, entonces, deberá recibir un segundo parámetro de tipo boolean con un valor de «true».
 
@@ -211,10 +291,17 @@ Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en 
   select(['id', 'name', 'age', 'country'])
   // Cierta columna (cuando es una sola se puede pasar como string)
   select('nick')
-  // Cuando es de tipo JOIN
+  // omitiendo ciertas columnas (pasarse cuantas sean necesarias)
+  select({ not: ['state'] })
+
+  /* --- de tipo JOIN --- */
   select({ user: ['id', 'name'], type: ['name'] })
   // De tipo JOIN seleccionando todas las columnas (all es una propiedad especial)
   select({ all: true })
+  // de tipo JOIN, seleccionando todas las columnas pero especificando la tabla
+  select({ user: '*', country: ['name'] })
+  // de tipo JOIN, omitiendo ciertas columnas
+  select({ users: { not: ['state'] } })
 
   /* --- Ejecutando funciones, código SQL --- */
   const model = santzModel({...});
@@ -229,7 +316,8 @@ Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en 
   - <a href="#select-simple">select simple</a>
   - <a href="#select-con-where">select con where</a>
   - <a href="#select-con-strtosql">select con srtToSql</a>
-    > ### **`where()`**
+
+> ### **`where()`**
 
 ### **Parámetros:**
 
@@ -247,7 +335,8 @@ Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer paráme
   // Utilizando el operador 'LIKE' (name LIKE %jos%)
   where('name', 'like', 'jos');
   ```
-  > ### `from()`
+
+> ### `from()`
 
 ### **Parámetros:**
 
@@ -266,7 +355,8 @@ El parámetro `tableName` hará referencia al nombre de la tabla donde se consul
   // Activado (sus valores solo son para leerse)
   from('user', true);
   ```
-  > ### `insert()`
+
+> ### `insert()`
 
 ### **Parámetros:**
 
@@ -287,7 +377,8 @@ Su parámetro `tabla`, indica el nombre de la tabla donde se insertarán las nue
   ```
   Ejemplo práctico:
 - <a href="#insercion-de-datos">Inserción de datos</a>
-  > ### `update()`
+
+> ### `update()`
 
 ### **Parámetros:**
 
@@ -308,7 +399,8 @@ Su parámetro `tabla`, indica la tabla donde se modificarán las filas.
   ```
   Ejemplo práctico:
 - <a href="#actualizacion-de-datos">Actualización de datos</a>
-  > ### `values()`
+
+> ### `values()`
 
 ### **Parámetros:**
 
@@ -325,7 +417,8 @@ Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el d
     country: 'Colombia',
   });
   ```
-  > ### `destroy()`
+
+> ### `destroy()`
 
 ### **Parámetros:**
 
@@ -340,7 +433,8 @@ Ejecutará una sentencia `DELETE` en el cual, a diferencia del método <a href="
   ```
   Ejemplo práctico:
 - <a href="#eliminacion-de-datos">Eliminación de datos</a>
-  > ### `hidden()`
+
+> ### `hidden()`
 
 ### **Parámetros:**
 
@@ -360,7 +454,8 @@ Cambiará el estado de visibilidad de la filas seleccionadas. Esto impedirá que
 Ejemplo práctico:
 
 - <a href="#ocultar-filas">Ocultar filas</a>
-  > ### `show()`
+
+> ### `show()`
 
 ### **Parámetros:**
 
@@ -404,7 +499,8 @@ Permitirá visualizar todas aquellas filas que han sido ocultas por el método <
 Ejemplo práctico:
 
 - <a href="#ver-todos-los-registros-ocultos">Ver todos los registros ocultos</a>
-  > ### `innerJoin()`
+
+> ### `innerJoin()`
 
 ### **Parámetros:**
 
@@ -423,7 +519,8 @@ Método encargado de agregar al query la cláusula `INNER JOIN`.
   ```
   Ejemplo práctico:
 - <a href="#ejemplo-inner-join">Sentencia INNER JOIN</a>
-  > ### `leftJoin()`
+
+> ### `leftJoin()`
 
 ### **Parámetros:**
 
@@ -442,7 +539,8 @@ Método encargado de agregar al query la cláusula `LEFT JOIN`.
   ```
   Ejemplo práctico:
 - <a href="#ejemplo-right-join">Sentencia LEFT JOIN</a>
-  > ### `rightJoin()`
+
+> ### `rightJoin()`
 
 ### **Parámetros:**
 
@@ -461,7 +559,8 @@ Método encargado de agregar al query la cláusula `RIGHT JOIN`.
   ```
   Ejemplo práctico:
 - <a href="#ejemplo-right-join">Sentencia RIGHT JOIN</a>
-  > ### `on()`
+
+> ### `on()`
 
 ### **Parámetros:**
 
@@ -476,7 +575,8 @@ Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a l
   // Verifica si la columna `type` de la tabla `user` es igual a `id_type` de la columna `types`
   on('user.type', 'types.id_type');
   ```
-  > ### `and()`
+
+> ### `and()`
 
 ### **Parámetros:**
 
@@ -493,7 +593,8 @@ Añade la cláusula `AND` al query.
   // Donde el valor de `cash` sea mayor a 1200
   and('user.cash', '>', 1200);
   ```
-  > ### `or()`
+
+> ### `or()`
 
 ### **Parámetros:**
 
@@ -510,7 +611,8 @@ Añade la cláusula `OR` al query.
   // Donde el valor de `age` sea mayor o igual a 18
   or('user.age', '>=', 18);
   ```
-  > ### `orderBy()`
+
+> ### `orderBy()`
 
 ### **Parámetros:**
 
@@ -528,7 +630,8 @@ Ordena ascendente o descendentemente todas las filas obtenidas, por los valores 
   ```
   Ejemplo práctico:
 - <a href="#ordenar-valores-devueltos">Ordenar valores devueltos</a>
-  > ### `limit()`
+
+> ### `limit()`
 
 ### **Parámetros:**
 
@@ -556,7 +659,8 @@ Método encargado de ejecutar la sentencia `SQL` antes preparada. Siempre debe s
   // No necesita de parámetros
   exec();
   ```
-  <h2 id="ejemplos-de-uso">Ejemplos de uso</h2>
+
+<h2 id="ejemplos-de-uso">Ejemplos de uso</h2>
 
 > <h3 id="select-simple">Select simple</h3>
 
@@ -739,6 +843,7 @@ OkPacket {
 ```
 
 > <h3 id="sentencias-join">Sentencias JOIN</h3>
+
 Cuando la consulta a realizar es de tipo `JOIN`, al método <a href="#select">select</a> se le debe pasar un objeto en el cual sus llaves corresponderán al nombre de la tabla y su valor, un arreglo, contendrá los nombres de columnas a mostrar.
 
 <h3 id="ejemplo-inner-join">Ejemplo innerJoin()</h3>
@@ -863,6 +968,55 @@ SELECT `users`.`id`, `users`.`nick`, `country`.`name` FROM `users` RIGHT JOIN `c
   RowDataPacket {
     users: { id: null, nick: null },
     country: { name: 'Chile' }
+  }
+]
+```
+
+> <h3 id="omitiendo-columnas">Omitiendo columnas</h3>
+De la columna «users» (id, nick, country, state) omitir las columnas «state, country». A continuación se estará utilizando la sentencia `INNER JOIN`, pero bien que se pueden usar `LEFT-RIGH JOIN.`
+```js
+// select normal
+const result = await model
+.select({
+  not: ['state','country']
+})
+.from('users', true)
+.limit(3)
+.exec();
+
+// JOIN
+const result = await model
+.select({
+  users: { not: ['state','country'] },
+  country: '*'
+})
+.from('users', true)
+.innerJoin('country', true)
+.on('users.country', 'country.id')
+.limit(3)
+.exec();
+```
+Resultado en consola:
+```sh
+# resultado select normal
+[
+  RowDataPacket { id: 3, nick: 'Chris' },
+  RowDataPacket { id: 4, nick: 'Santz' },
+  RowDataPacket { id: 5, nick: 'sky' }
+]
+
+# resultado sentencia JOIN
+[ RowDataPacket {
+    users: { id: 3, nick: 'Chris' },
+    country: { id: 3, name: 'Venezuela' }
+  },
+  RowDataPacket {
+    users: { id: 4, nick: 'Santz' },
+    country: { id: 4, name: 'Colombia' }
+  },
+  RowDataPacket {
+    users: { id: 5, nick: 'sky' },
+    country: { id: 1, name: 'none' }
   }
 ]
 ```
@@ -1056,6 +1210,7 @@ SELECT * FROM `user` WHERE `user`.`state` = 1 ORDER BY `id` ASC;
 ```
 
 > <h3 id="limitar-el-numero-de-filas-a-mostrar">Limitar el número de filas a mostrar</h3>
+
 _`Recordatorio:` Como en las filas de una tabla en MySql la primera posición siempre será «0», cuando le indicamos al método `limit` en qué fila empezar, hay que tener en cuenta que si le colocamos «1» esta nos mostrará el registro «2», y así con las demás posiciones._
 
 ```js
@@ -1156,7 +1311,7 @@ Si revisamos el código SQL de nuestra ejecución en consola, a la columna «pj�
 ```js
 (async () => {
   try {
-    // Se le indica, en el string, que incremente el valor de la columa «pj» en uno
+    // Se le indica, en el string, que incremente el valor de la columna «pj» en uno
     const increment = model.strToSql('pj + 1');
     const result = await model
       .update('users')
@@ -1261,6 +1416,7 @@ const model = santzModel({
   strict: true,
   columnNameState: 'state',
   showQuery: true,
+  nestTables: true
 });
 ```
 
@@ -1295,5 +1451,6 @@ interface QueryResult {
   changedRows: number;
 }
 ```
+
 
 Chris Santiz, 2019
