@@ -1,4 +1,4 @@
-# Santz 1.0.0
+# Santz 1.0.1
 
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
@@ -49,6 +49,23 @@
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
 ## Novedades
+
+- <h3>versión 1.0.1</h3>
+
+  - <h4>Método «testConnection» ahora es una promesa</h4>
+
+    Para permitir decidir qué hacer de acuerdo a si se ha conectado (o no) a la base de datos, ahora el método retornará una promesa:
+
+    ```js
+    model.testConnection().then(res => {
+      // res: { connected: boolean, message: string }
+      if (res.connected) {
+        console.log('¡Conexión exitosa!');
+      } else {
+        console.log(res.message);
+      }
+    });
+    ```
 
 - <h3>versión 0.9.9</h3>
 
@@ -219,10 +236,16 @@ const model = santzModel({
 _Las mismas <a href="https://github.com/mysqljs/mysql/blob/master/Readme.md#connection-options" target="_blank">opciones de conexión</a> son admitidas cuando se crea un objeto Pool.
 Para ver las opciones específicas de esta puede ir a: <a href="https://github.com/mysqljs/mysql/blob/master/Readme.md#pool-options" target="_blank">opciones Pool</a>_
 
-Con el código anterior se establecerá una conexión. Para saber si todo ha ido bien ejecutar el método `testConnection()`:
+Con el código anterior se establecerá una conexión. Para saber si todo ha ido bien ejecutar el método `testConnection`:
 
 ```js
-model.testConnection();
+model.testConnection().then(res => {
+  if (res.connected) {
+    console.log('¡Conexión exitosa!');
+  } else {
+    console.log(res.message);
+  }
+});
 ```
 
 Vista en consola:
@@ -245,7 +268,7 @@ Vista en consola:
 - `modelSantz(objectConfig)`: Retornará una instancia de la clase `Santz` con todos los métodos disponibles para realizar y ejecutar consultas `SQLs`. Recibirá un objeto con ciertas propiedades útiles para configurar la librería.
 
 <h2 id="modo-estricto-y-tablas-estaticas">Modo estricto y tablas estáticas</h2>
-Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas. A continuación se explican los conceptos:
+Constantemente se estará hablando de dos conceptos súper importantes, que serán el modo estricto y las tablás estáticas.
 
  <h3 id="modo-estricto">Modo estricto:</h3>
   La librería por defecto lo tendrá activado. Este modo busca impedir la eliminación de valores por accidente o por cualquier otra circunstancia.

@@ -5,7 +5,12 @@
  */
 
 import { Pool, raw, format, QueryOptions } from 'mysql';
-import { IndexSignature, OrderMode, SelectTypes } from '../index.d';
+import {
+  IndexSignature,
+  OrderMode,
+  SelectTypes,
+  TestConnectionResult,
+} from '../index.d';
 
 interface ILengthKey {
   length?: number;
@@ -572,16 +577,14 @@ export class Santz {
     }
     return this;
   }
-  public testConnection(): void {
-    _pool.getConnection((err, connection) => {
-      if (err) throw err;
-      connection.release();
-
-      return console.info(
-        `\n                    **********************************************************\n                    *                                                        *\n*********************  Santz ha conectado exitosamente con la base de datos  *********************\n*********************                                                        *********************\n                    *                         ID: ${
-          connection.threadId
-        }                         *\n                    **********************************************************\n`,
-      );
+  public testConnection(): Promise<TestConnectionResult> {
+    return new Promise((resolve, reject) => {
+      _pool.getConnection((err, connection) => {
+        if (err) {
+          resolve({ connected: false, message: err.message });
+        }
+        resolve({ connected: true, message: 'conectado' });
+      });
     });
   }
   public exec(): Promise<any> {

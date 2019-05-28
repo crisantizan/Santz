@@ -38,9 +38,14 @@ declare class Santz {
   public or(identifier: string, operator: string, value: string | number): this;
   public orderBy(column: string, mode?: OrderMode): this;
   public limit(startOrAmount: number, numRows?: number): this;
-  public testConnection(): void;
+  public testConnection(): Promise<TestConnectionResult>;
   public exec(): Promise<any>;
   public strToSql(strSql: string): object;
+}
+
+declare interface TestConnectionResult {
+  connected: boolean;
+  message: string;
 }
 
 declare interface QueryResult {
@@ -77,4 +82,5 @@ export {
   OrderMode,
   SelectTypes,
   IndexSignature,
+  TestConnectionResult,
 };
