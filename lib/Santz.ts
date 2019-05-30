@@ -4,7 +4,14 @@
  * 14/08/2018 11:32
  */
 
-import { Pool, raw, format, QueryOptions } from 'mysql';
+import {
+  Pool,
+  raw,
+  format,
+  QueryOptions,
+  MysqlError,
+  PoolConnection,
+} from 'mysql';
 import {
   IndexSignature,
   OrderMode,
@@ -587,7 +594,33 @@ export class Santz {
       });
     });
   }
-  public exec(): Promise<any> {
+  public startTransactionCb(
+    cb: (err: MysqlError | null, connection: PoolConnection | null) => void,
+  ) {
+    _pool.getConnection((err, connection) => {
+      // start transaction
+      connection.beginTransaction(err => {
+        cb(err, null);
+      });
+
+      // queries
+    });
+  }
+  public startTransaction(): Promise<PoolConnection> {
+    return new Promise((resolve, reject) => {
+      _pool.getConnection((err, connection) => {
+        // start transaction
+        connection.beginTransaction(err => {
+          return reject(err);
+        });
+        resolve(connection);
+      });
+    });
+  }
+  public nueva() {
+    return new Santz(_pool, this.nestTables, _strictMode);
+  }
+  public exec(conn?: PoolConnection): Promise<any> {
     return new Promise((resolve, reject) => {
       // Si la query tiene la cláusula `ON`
       if (_haveOn) {
@@ -672,71 +705,89 @@ export class Santz {
       stmt = _isJoin ? { sql: stmt, nestTables: this.nestTables } : stmt;
       // Resetear variables
       reset();
-
-      _pool.getConnection((err, connection) => {
-        if (err) reject(err);
-
-        connection.query(stmt, (err, rows, fields) => {
-          connection.release();
-
-          if (err) reject(err);
-
-          if (_usedMethod && !_strictMode) {
-            return reject(
-              `El método '${_usedMethod}' solo se puede usar en modo estricto`,
-            );
+      // cuando se ha especificado la conexión
+      if (conn) {
+        conn.query('SELECT * FROM user', (err, rows, fields) => {
+          conn.release();
+          // si pasase un error
+          if (err) {
+            return conn.rollback(() => {
+              reject(err);
+            });
           }
-
-          // cuando se quieren omitir ciertas columnas
-          if (Object.keys(_notColumns).length > 0) {
-            // consulta select normal
-            if (_notColumns.hasOwnProperty('not')) {
-              rows = rows.map((row: any) => {
-                // columnas a omitir
-                const columns = _notColumns['not'];
-                // recorrer propiedades de la fila actual
-                for (const prop in row) {
-                  // verificar si la propiedad tiene que ser eliminada
-                  if (columns.some(column => column === prop)) {
-                    delete row[prop];
-                  }
-                }
-                // retornar la fila transformada (o no)
-                return row;
-              });
-              // (sentencias JOIN)
-            } else {
-              // recorrer todas las filas
-              rows = rows.map((row: any) => {
-                // recorrer el objeto con las tablas y sus propiedades a omitir.
-                for (const table in _notColumns) {
-                  // verificar que la tabla exista en el resultado obtenido
-                  if (row.hasOwnProperty(table)) {
-                    // recorrer las propiedades de la tabla
-                    for (const prop in row[table]) {
-                      // recorrer las propiedades de la tabla actual que van a ser eliminadas
-                      for (const propToDelete of _notColumns[table]) {
-                        // verificar que la propiedad actual vaya a ser eliminada
-                        if (prop === propToDelete) {
-                          // eliminar
-                          delete row[table][propToDelete];
-                        }
-                      }
-                    }
-                  }
-                }
-                // retornar la fila transformada (o no)
-                return row;
-              });
-            }
-            // resetar valor
-            _notColumns = {};
-          }
-
           resolve(rows);
         });
-      });
+      } else {
+        // cuando no se ha pasado la conexción
+        _pool.getConnection((err, connection) => {
+          if (err) reject(err);
+
+          connection.query(stmt, (err, rows, fields) => {
+            connection.release();
+
+            if (err) reject(err);
+
+            if (_usedMethod && !_strictMode) {
+              return reject(
+                `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+              );
+            }
+
+            // cuando se quieren omitir ciertas columnas
+            if (Object.keys(_notColumns).length > 0) {
+              rows = this.omit(rows);
+              // resetar valor
+              _notColumns = {};
+            }
+
+            resolve(rows);
+          });
+        });
+      }
     });
+  }
+
+  private omit(rows: any[]) {
+    // consulta select normal
+    if (_notColumns.hasOwnProperty('not')) {
+      return rows.map((row: any) => {
+        // columnas a omitir
+        const columns = _notColumns['not'];
+        // recorrer propiedades de la fila actual
+        for (const prop in row) {
+          // verificar si la propiedad tiene que ser eliminada
+          if (columns.some(column => column === prop)) {
+            delete row[prop];
+          }
+        }
+        // retornar la fila transformada (o no)
+        return row;
+      });
+      // (sentencias JOIN)
+    } else {
+      // recorrer todas las filas
+      return rows.map((row: any) => {
+        // recorrer el objeto con las tablas y sus propiedades a omitir.
+        for (const table in _notColumns) {
+          // verificar que la tabla exista en el resultado obtenido
+          if (row.hasOwnProperty(table)) {
+            // recorrer las propiedades de la tabla
+            for (const prop in row[table]) {
+              // recorrer las propiedades de la tabla actual que van a ser eliminadas
+              for (const propToDelete of _notColumns[table]) {
+                // verificar que la propiedad actual vaya a ser eliminada
+                if (prop === propToDelete) {
+                  // eliminar
+                  delete row[table][propToDelete];
+                }
+              }
+            }
+          }
+        }
+        // retornar la fila transformada (o no)
+        return row;
+      });
+    }
   }
   set columnNameState(name: string) {
     _delColumnName = name;
