@@ -594,31 +594,37 @@ export class Santz {
       });
     });
   }
-  public startTransactionCb(
-    cb: (err: MysqlError | null, connection: PoolConnection | null) => void,
-  ) {
-    _pool.getConnection((err, connection) => {
-      // start transaction
-      connection.beginTransaction(err => {
-        cb(err, null);
-      });
-
-      // queries
-    });
-  }
-  public startTransaction(): Promise<PoolConnection> {
+  public startTransaction(): Promise<{
+    connection: PoolConnection;
+    commit: () => Promise<void>;
+  }> {
     return new Promise((resolve, reject) => {
       _pool.getConnection((err, connection) => {
-        // start transaction
-        connection.beginTransaction(err => {
+        if (err) {
           return reject(err);
+        }
+        // start transaction
+        connection.beginTransaction(error => {
+          if (error) {
+            return reject(err);
+          }
+          resolve({
+            connection,
+            // método para hacer commit
+            commit: (): Promise<void> => {
+              return new Promise((resolve1, reject1) => {
+                connection.commit(error1 => {
+                  if (error1) {
+                    return reject1(error1);
+                  }
+                  resolve1();
+                });
+              });
+            },
+          });
         });
-        resolve(connection);
       });
     });
-  }
-  public nueva() {
-    return new Santz(_pool, this.nestTables, _strictMode);
   }
   public exec(conn?: PoolConnection): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -705,20 +711,8 @@ export class Santz {
       stmt = _isJoin ? { sql: stmt, nestTables: this.nestTables } : stmt;
       // Resetear variables
       reset();
-      // cuando se ha especificado la conexión
-      if (conn) {
-        conn.query('SELECT * FROM user', (err, rows, fields) => {
-          conn.release();
-          // si pasase un error
-          if (err) {
-            return conn.rollback(() => {
-              reject(err);
-            });
-          }
-          resolve(rows);
-        });
-      } else {
-        // cuando no se ha pasado la conexción
+      // cuando no se ha pasado la conexción
+      if (!conn) {
         _pool.getConnection((err, connection) => {
           if (err) reject(err);
 
@@ -732,7 +726,6 @@ export class Santz {
                 `El método '${_usedMethod}' solo se puede usar en modo estricto`,
               );
             }
-
             // cuando se quieren omitir ciertas columnas
             if (Object.keys(_notColumns).length > 0) {
               rows = this.omit(rows);
@@ -742,6 +735,29 @@ export class Santz {
 
             resolve(rows);
           });
+        });
+      } else {
+        // cuando se ha especificado la conexión
+        conn.query(stmt, (err, rows, fields) => {
+          // conn.release();
+          // si pasase un error
+          if (err) {
+            return conn.rollback(() => {
+              reject(err);
+            });
+          }
+          if (_usedMethod && !_strictMode) {
+            return reject(
+              `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+            );
+          }
+          // cuando se quieren omitir ciertas columnas
+          if (Object.keys(_notColumns).length > 0) {
+            rows = this.omit(rows);
+            // resetar valor
+            _notColumns = {};
+          }
+          resolve(rows);
         });
       }
     });
