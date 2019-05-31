@@ -1,6 +1,6 @@
 # Santz 1.0.2
 
-## Librería Nodejs para realizar consultas a base de datos MySQL
+## Librería NodeJS para realizar consultas a bases de datos MySQL, 100% basada en promesas
 
 - <a href="#novedades">Novedades</a>
 - <a href="#descripcion">Santz</a>
@@ -28,6 +28,7 @@
   - <a href="#or">or</a>
   - <a href="#orderby">orderBy</a>
   - <a href="#limit">limit</a>
+  - <a href="#testconnection">testConnection</a>
   - <a href="#starttransaction">startTransaction</a>
   - <a href="#exec">exec</a>
 - <a href="#ejemplos-de-uso">Ejemplos de uso</a>
@@ -52,24 +53,20 @@
 ## Novedades
 
 - <h3>versión 1.0.2</h3>
-<!-- TODO:: completar documentación, agregar método «testConnection» -->
+
+  - <h4>Poder realizar transacciones</h4>
+
+    Cuando se tienen que hacer varias consultas, y a las vez una depende del resultado de la otra, no hay mejor opción para garantizar la integridad de los datos que ejecutar una transacción. Se mantiene la filosofía de basado en promesas y nombres de métodos descriptivos.
+
+    <a href="#starttransaction">Ver ejemplo</a>
 
 - <h3>versión 1.0.1</h3>
 
   - <h4>Método «testConnection» ahora es una promesa</h4>
 
-    Para permitir decidir qué hacer de acuerdo a si se ha conectado (o no) a la base de datos, ahora el método retornará una promesa:
+    Para permitir decidir qué hacer de acuerdo a si se ha conectado (o no) a la base de datos, ahora el método retornará una promesa.
 
-    ```js
-    model.testConnection().then(res => {
-      // res: { connected: boolean, message: string }
-      if (res.connected) {
-        console.log('¡Conexión exitosa!');
-      } else {
-        console.log(res.message);
-      }
-    });
-    ```
+    <a href="#testconnection">Ver ejemplo</a>
 
 - <h3>versión 0.9.9</h3>
 
@@ -194,7 +191,7 @@
 <h2 id="descripcion">¿De qué se trata?</h2>
 
 
-`Santz` es una pequeña librería que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar. Similar a un ORM pero muy simplificado, va genial en proyectos pequeños.
+`Santz` es una pequeña librería, 100% basada en promesas, que facilita la manera de realizar algunas consultas `SQL` desde `Nodejs` a `MySQL`. Específicamente hablando, ejecutará sentencias sin escribir código `SQL`, todo mediante métodos `JavaScript`, encadenados y con nombres intuitivos, que permitirán comprender fácilmente la acción a ejecutar. Similar a un ORM pero muy simplificado, va genial en proyectos pequeños.
 
 Escapará todos los datos ingresandos en los diferentes métodos, tantos los identificadores como sus valores, evitando así inyecciones SQL.
 
@@ -634,13 +631,32 @@ Agrega la cláusula «LIMIT» a la consulta, usarse solo al final de esta. Recib
   Ejemplo práctico:
 - <a href="#limitar-el-numero-de-filas-a-mostrar">Limitar el número de filas a mostrar</a>
 
+> ## `testConnection`
+
+Poder comprobar si la conexión a la base de datos ha ido bien.
+
+Será una promesa, pero no capturará errores con catch, siempre resolverá.
+
+- Ejemplo:
+
+  ```js
+  model.testConnection().then(res => {
+    // res: { connected: boolean, message: string }
+    if (res.connected) {
+      console.log('¡Conexión exitosa!');
+    } else {
+      console.log(res.message);
+    }
+  });
+  ```
+
 > ## `startTransaction`
 
 Permite ejecutar transacciones SQL.
 
 Retornará un objeto con dos propiedades: la conexión y el método para hacer commit. Como se tiene que utilizar una sola conexión, para ejecutar tantas sentencias sean necesarias, es imprescindible el objeto retornado. La función `commit` simplemente confirmará los cambios anteriormente ejecutados, será una promesa.
 
-Hay que tener algo muy en cuenta, para poder utilizar cualquier método de la clase `Santz` en una transacción, será obligatorio el paso como parámetro del objeto conexión obtenido en el método `exec`; esto por cada consulta ejecutada. Si llegase a ocurrir un error, en cualquier petición, se hará un `rollback` automático para impedir que los datos se rompan.
+Hay que tener algo muy en cuenta, para poder utilizar cualquier método de la clase `Santz` en una transacción, será obligatorio el paso como parámetro del objeto conexión en el método `exec`; esto por cada consulta ejecutada. Si llegase a ocurrir un error, en cualquier petición, se hará un `rollback` automático para impedir que los datos se rompan.
 
 - Ejemplo:
   ```js
