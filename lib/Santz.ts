@@ -63,7 +63,9 @@ let _pool: Pool,
   // Guardar string de la cláusula LIMIT cuando esta se agregue
   _strLimitClausule: string,
   // columnas que se quieren omitir
-  _notColumns: { [key: string]: string[] };
+  _notColumns: { [key: string]: string[] },
+  // indica si está dentro de una transacción
+  _isTransaction: boolean;
 
 export class Santz {
   constructor(
@@ -91,6 +93,7 @@ export class Santz {
     _usedMethod = '';
     _strLimitClausule = '';
     _notColumns = {};
+    _isTransaction = false;
   }
   public strToSql(strSql: string): object {
     return raw(strSql);
@@ -598,33 +601,41 @@ export class Santz {
     connection: PoolConnection;
     commit: () => Promise<void>;
   }> {
+    // indicar que hay una transacción activa
+    _isTransaction = true;
     return new Promise((resolve, reject) => {
       _pool.getConnection((err, connection) => {
         if (err) {
           return reject(err);
         }
-        // start transaction
+        // iniciar transacción
         connection.beginTransaction(error => {
           if (error) {
             return reject(err);
           }
           resolve({
+            // conexión que será utilizada por las queries a realizar
             connection,
             // método para hacer commit
             commit: (): Promise<void> => {
+              // indicar que ya no se encuentra una transacción activa
+              _isTransaction = false;
               return new Promise((resolve1, reject1) => {
                 connection.commit(error1 => {
                   if (error1) {
-                    return reject1(error1);
+                    return connection.rollback(() => {
+                      reject1(error1);
+                    });
                   }
+                  connection.release();
                   resolve1();
                 });
               });
-            },
-          });
-        });
-      });
-    });
+            }, // fin commit
+          }); // fin resolve
+        }); // fin startTransaction
+      }); // fin getConnection
+    }); // fin new Promise
   }
   public exec(conn?: PoolConnection): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -711,8 +722,16 @@ export class Santz {
       stmt = _isJoin ? { sql: stmt, nestTables: this.nestTables } : stmt;
       // Resetear variables
       reset();
-      // cuando no se ha pasado la conexción
+      // cuando no se ha pasado la conexión
       if (!conn) {
+        // verificar que no se haya invocado (sin el parámetro) en una transacción
+        if (_isTransaction) {
+          return reject(
+            new Error(
+              `[Método exec]: Para realizar consultas dentro de una transacción es obligatorio pasar la conexión obtenida por la misma.`,
+            ),
+          );
+        }
         _pool.getConnection((err, connection) => {
           if (err) reject(err);
 
@@ -723,7 +742,9 @@ export class Santz {
 
             if (_usedMethod && !_strictMode) {
               return reject(
-                `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+                new Error(
+                  `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+                ),
               );
             }
             // cuando se quieren omitir ciertas columnas
@@ -737,9 +758,16 @@ export class Santz {
           });
         });
       } else {
-        // cuando se ha especificado la conexión
+        // cuando se pasa la conexión pero no es una transacción
+        if (!_isTransaction) {
+          return reject(
+            new Error(
+              `[Método exec] Solo se debe pasar una conexión cuando se está dentro de una transacción`,
+            ),
+          );
+        }
+        // cuando se ha especificado la conexión (transacción)
         conn.query(stmt, (err, rows, fields) => {
-          // conn.release();
           // si pasase un error
           if (err) {
             return conn.rollback(() => {
@@ -748,7 +776,9 @@ export class Santz {
           }
           if (_usedMethod && !_strictMode) {
             return reject(
-              `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+              new Error(
+                `El método '${_usedMethod}' solo se puede usar en modo estricto`,
+              ),
             );
           }
           // cuando se quieren omitir ciertas columnas
