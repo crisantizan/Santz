@@ -1,10 +1,10 @@
-# Santz 1.0.1
+# Santz 1.0.2
 
 ## Librería Nodejs para realizar consultas a base de datos MySQL
 
 - <a href="#novedades">Novedades</a>
-- <a href="#instalar">Instalación</a>
 - <a href="#descripcion">Santz</a>
+- <a href="#instalar">Instalación</a>
 - <a href="#descripcion-de-metodos-conexion">Métodos de conexión</a>
 - <a href="#modo-estricto-y-tablas-estaticas">Modo estricto y tablas estáticas</a>
   - <a href="#modo-estricto">Modo estricto</a>
@@ -28,6 +28,7 @@
   - <a href="#or">or</a>
   - <a href="#orderby">orderBy</a>
   - <a href="#limit">limit</a>
+  - <a href="#starttransaction">startTransaction</a>
   - <a href="#exec">exec</a>
 - <a href="#ejemplos-de-uso">Ejemplos de uso</a>
   - <a href="#select-simple">Select simple</a>
@@ -49,6 +50,9 @@
 - <a href="#usar-con-typescript">Usar con TypeScript</a>
 
 ## Novedades
+
+- <h3>versión 1.0.2</h3>
+<!-- TODO:: completar documentación, agregar método «testConnection» -->
 
 - <h3>versión 1.0.1</h3>
 
@@ -248,18 +252,6 @@ model.testConnection().then(res => {
 });
 ```
 
-Vista en consola:
-
-```js
-
-                    **********************************************************
-                    *                                                        *
-*********************  Santz ha conectado exitosamente con la base de datos  *********************
-*********************                                                        *********************
-                    *                         ID: 1                          *
-                    **********************************************************
-```
-
 <h2 id="descripcion-de-metodos-conexion">Descripción de métodos de conexión</h2>
 
 - `createPool(poolConfig)`: Método encargado de obtener un objeto conexión Pool de la librería `MySQL`. Su parámetro `poolConfig` deberá ser un objeto que contendrá las credenciales básicas necesarias para establecer conexión con la base de datos.
@@ -286,7 +278,7 @@ Si se dejase el modo estricto inactivo no sería necesario indicar cuando una ta
 
   <h2 id="metodos-de-la-clase-santz">Métodos de la clase Santz</h2>
 
-> ### **`select()`**
+> ## `select`
 
 #### **Parámetros:**
 - columns : array | string | object
@@ -337,7 +329,7 @@ Cuando se quiera ejecutar funciones como `CURRENT_TIMESTAMP()`, por ejemplo, en 
   - <a href="#select-con-where">select con where</a>
   - <a href="#select-con-strtosql">select con srtToSql</a>
 
-> ### **`where()`**
+> ## `where`
 
 #### **Parámetros:**
 - columnName: string
@@ -353,7 +345,7 @@ Añade la cláusula `WHERE`, permitiendo así filtrar datos. Como primer paráme
   where('name', 'like', 'jos');
   ```
 
-> ### `from()`
+> ## `from`
 
 #### **Parámetros:**
 - tableName: string
@@ -371,7 +363,7 @@ El parámetro `tableName` hará referencia al nombre de la tabla donde se consul
   from('user', true);
   ```
 
-> ### `insert()`
+> ## `insert`
 
 #### **Parámetros:**
 - tableName: string
@@ -391,7 +383,7 @@ Su parámetro `tabla`, indica el nombre de la tabla donde se insertarán las nue
   Ejemplo práctico:
 - <a href="#insercion-de-datos">Inserción de datos</a>
 
-> ### `update()`
+> ## `update`
 
 #### **Parámetros:**
 - tableName: string
@@ -411,7 +403,7 @@ Su parámetro `tabla`, indica la tabla donde se modificarán las filas.
   Ejemplo práctico:
 - <a href="#actualizacion-de-datos">Actualización de datos</a>
 
-> ### `values()`
+> ## `values`
 
 #### **Parámetros:**
 - data: object
@@ -428,7 +420,7 @@ Recibirá un objeto donde las propiedad serán nombres de tablas y su valor el d
   });
   ```
 
-> ### `destroy()`
+> ## `destroy`
 
 #### **Parámetros:**
 - tableName: string
@@ -443,7 +435,7 @@ Ejecutará una sentencia `DELETE` en el cual, a diferencia del método <a href="
   Ejemplo práctico:
 - <a href="#eliminacion-de-datos">Eliminación de datos</a>
 
-> ### `hidden()`
+> ## `hidden`
 
 #### **Parámetros:**
 - tableName: string
@@ -463,7 +455,7 @@ Ejemplo práctico:
 
 - <a href="#ocultar-filas">Ocultar filas</a>
 
-> ### `show()`
+> ## `show`
 
 #### **Parámetros:**
 - tableName: string
@@ -482,7 +474,7 @@ Volverá visibles aquellas filas que han sido ocultas por el método <a href="#h
 Ejemplo práctico:
 <a href="#volver-visible-filas-ocultas">Volver visibles filas ocultas</a>
 
-> ### `rowsHidden()`
+> ## `rowsHidden`
 
 #### **Parámetros:**
 - tableName: string
@@ -505,7 +497,7 @@ Ejemplo práctico:
 
 - <a href="#ver-todos-los-registros-ocultos">Ver todos los registros ocultos</a>
 
-> ### `innerJoin()`
+> ## `innerJoin`
 
 #### **Parámetros:**
 - tableName: string
@@ -523,7 +515,7 @@ Método encargado de agregar al query la cláusula `INNER JOIN`.
   Ejemplo práctico:
 - <a href="#ejemplo-inner-join">Sentencia INNER JOIN</a>
 
-> ### `leftJoin()`
+> ## `leftJoin`
 
 #### **Parámetros:**
 - tableName: string
@@ -541,7 +533,7 @@ Método encargado de agregar al query la cláusula `LEFT JOIN`.
   Ejemplo práctico:
 - <a href="#ejemplo-right-join">Sentencia LEFT JOIN</a>
 
-> ### `rightJoin()`
+> ## `rightJoin`
 
 #### **Parámetros:**
 - tableName: string
@@ -559,7 +551,7 @@ Método encargado de agregar al query la cláusula `RIGHT JOIN`.
   Ejemplo práctico:
 - <a href="#ejemplo-right-join">Sentencia RIGHT JOIN</a>
 
-> ### `on()`
+> ## `on`
 
 #### **Parámetros:**
 - firstIdentifier: string
@@ -573,7 +565,7 @@ Agrega la cláusula `ON` al query. Sus dos parámetros deberán corresponder a l
   on('user.type', 'types.id_type');
   ```
 
-> ### `and()`
+> ## `and`
 
 #### **Parámetros:**
 - columnName: string
@@ -588,7 +580,7 @@ Añade la cláusula `AND` al query.
   and('user.cash', '>', 1200);
   ```
 
-> ### `or()`
+> ## `or`
 
 #### **Parámetros:**
 
@@ -604,7 +596,7 @@ Añade la cláusula `OR` al query.
   or('user.age', '>=', 18);
   ```
 
-> ### `orderBy()`
+> ## `orderBy`
 
 #### **Parámetros:**
 
@@ -623,7 +615,7 @@ Ordena ascendente o descendentemente todas las filas obtenidas, por los valores 
   Ejemplo práctico:
 - <a href="#ordenar-valores-devueltos">Ordenar valores devueltos</a>
 
-> ### `limit()`
+> ## `limit`
 
 #### **Parámetros:**
 
@@ -642,14 +634,63 @@ Agrega la cláusula «LIMIT» a la consulta, usarse solo al final de esta. Recib
   Ejemplo práctico:
 - <a href="#limitar-el-numero-de-filas-a-mostrar">Limitar el número de filas a mostrar</a>
 
-> ### `exec()`
+> ## `startTransaction`
+
+Permite ejecutar transacciones SQL.
+
+Retornará un objeto con dos propiedades: la conexión y el método para hacer commit. Como se tiene que utilizar una sola conexión, para ejecutar tantas sentencias sean necesarias, es imprescindible el objeto retornado. La función `commit` simplemente confirmará los cambios anteriormente ejecutados, será una promesa.
+
+Hay que tener algo muy en cuenta, para poder utilizar cualquier método de la clase `Santz` en una transacción, será obligatorio el paso como parámetro del objeto conexión obtenido en el método `exec`; esto por cada consulta ejecutada. Si llegase a ocurrir un error, en cualquier petición, se hará un `rollback` automático para impedir que los datos se rompan.
+
+- Ejemplo:
+  ```js
+  (async () => {
+    try {
+      // iniciando una transacción
+      const { connection, commit } = await model.startTransaction();
+
+      // insertar nuevo usuario
+      const result = await model
+        .insert('users')
+        .values({ nick: 'skynet', country: 5 })
+        .exec(connection); // paso de la conexión
+
+      /* se hará rollback automático si ocurre error en cualquier sentencia */
+
+      // obtener data del nuevo usuario
+      const user = await model
+        .select({
+          users: ['id','nick'],
+          country: '*'
+        })
+        .from('users')
+        .innerJoin('country', true)
+        .on('users.country', 'country.id')
+        .where('users.id', '=', result.insertId) // ID del nuevo usuario
+        .exec(connection);
+
+      // hacer commit
+      await commit();
+
+      console.log(user);
+
+    } catch (err) {
+      console.error(err);
+    }
+  })();
+
+  ```
+
+> ## `exec`
 
 Método encargado de ejecutar la sentencia `SQL` antes preparada. Siempre debe ser invocado de último. Retornará una promesa con los resultados de la ejecución del query.
 
 - Ejemplo:
   ```js
-  // No necesita de parámetros
   exec();
+
+  // solo se pasará parámetro cuando se ejecute dentro de una transacción
+  exec(connection);
   ```
 
 <h2 id="ejemplos-de-uso">Ejemplos de uso</h2>

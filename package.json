@@ -1,11 +1,12 @@
 {
   "name": "santz",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pequeña librería para realizar consultas SQL desde NodeJS a MySQL",
   "main": "index.js",
   "types": "index.d.ts",
   "keywords": [
     "mysql",
+    "sql",
     "nodejs",
     "orm",
     "santz"

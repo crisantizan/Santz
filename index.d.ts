@@ -1,4 +1,11 @@
-import { Pool, PoolConfig, raw } from 'mysql';
+import {
+  Pool,
+  raw,
+  format,
+  QueryOptions,
+  PoolConnection,
+  PoolConfig,
+} from 'mysql';
 
 type OrderMode = 'ASC' | 'DESC';
 type SelectTypes = string | string[] | object | boolean;
@@ -39,7 +46,11 @@ declare class Santz {
   public orderBy(column: string, mode?: OrderMode): this;
   public limit(startOrAmount: number, numRows?: number): this;
   public testConnection(): Promise<TestConnectionResult>;
-  public exec(): Promise<any>;
+  public startTransaction(): Promise<{
+    connection: PoolConnection;
+    commit: () => Promise<void>;
+  }>;
+  public exec(conn?: PoolConnection): Promise<any>;
   public strToSql(strSql: string): object;
 }
 

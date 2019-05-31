@@ -1,6 +1,6 @@
 import { createPool as McreatePool, PoolConfig, Pool } from 'mysql';
 import { Santz } from './lib/Santz';
-import { ModelConfig } from './interfaces';
+import { ModelConfig } from './index.d';
 
 export function createPool(poolConfig: PoolConfig): Pool {
   return McreatePool(poolConfig);
@@ -19,17 +19,17 @@ export function santzModel(config: ModelConfig): Santz {
   }
   if (!config.strict && config.columnNameState) {
     console.log(
-      `\n[Método santzModel()]: No hace falta especificar la propiedad 'columnNameState' si el modo estricto está desactivado.`,
+      `\n[Método santzModel()] No hace falta especificar la propiedad 'columnNameState' si el modo estricto está desactivado.`,
     );
   }
   if (config.nestTables !== true && config.nestTables !== '_') {
-    console.error(
-      `\n[Método santzModel()]: La propiedad «nestTables» solo admite los valores de «true» o «_».`,
+    throw new Error(
+      '[Método santzModel()] La propiedad «nestTables» solo admite los valores de «true» o «_»',
     );
   }
 
-  const Model = new Santz(config.pool, config.nestTables, config.strict);
-  Model.columnNameState = config.columnNameState;
-  Model.showQuery = config.showQuery;
-  return Model;
+  const model = new Santz(config.pool, config.nestTables, config.strict);
+  model.columnNameState = config.columnNameState;
+  model.showQuery = config.showQuery;
+  return model;
 }

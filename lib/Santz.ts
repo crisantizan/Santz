@@ -9,7 +9,6 @@ import {
   raw,
   format,
   QueryOptions,
-  MysqlError,
   PoolConnection,
 } from 'mysql';
 import {
